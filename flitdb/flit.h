@@ -9,14 +9,14 @@ typedef signed long int64_t;
 typedef class flitdb;
 #endif
 
-#define FLITDB_SUCCESS 		0  // Successful operation
-#define FLITDB_ERROR 		1  // Unsuccessful operation
-#define FLITDB_PERM 		2  // Permission denied
-#define FLITDB_BUSY 		3  // The database file is locked
-#define FLITDB_NOT_FOUND 	4  // The database file is not found
-#define FLITDB_CORRUPT 		5  // The database file is malformed
-#define FLITDB_RANGE 		6  // The requested range is outside the range of the database
-#define FLITDB_DONE 		7  // The operation was completed successfully
+#define FLITDB_SUCCESS		0  // Successful operation
+#define FLITDB_ERROR		1  // Unsuccessful operation
+#define FLITDB_PERM			2  // Permission denied
+#define FLITDB_BUSY			3  // The database file is locked
+#define FLITDB_NOT_FOUND	4  // The database file is not found
+#define FLITDB_CORRUPT		5  // The database file is malformed
+#define FLITDB_RANGE		6  // The requested range is outside the range of the database
+#define FLITDB_DONE			7  // The operation was completed successfully
 #define FLITDB_NULL			8  // The operation resulted in a null lookup
 #define FLITDB_CREATE		9  // Create a database if not existent
 #define FLITDB_READONLY		10 // Only allow the reading of the database
