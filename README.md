@@ -1,8 +1,6 @@
-<center>
+<h1 align="center">FlitDB</h1>
 
-# FlitDB
-
-***Verb*** ~ *Move swiftly and lightly.*
+<p align="center"><i><b>Verb</b> ~ Move swiftly and lightly.</i></p>
 </center>
 
 FlitDB is teeny tiny database. Databases are part of every our everyday lives; but one issue tends to arise with databases. *What is that?* Simply put, it is: **Redundancy**. With this in mind, FlitDB sets out to eliminate this by removing all unnecessary values from the data that you store.
@@ -13,6 +11,9 @@ Instructions are good, but are even better, when they can be utilized in the con
 
 ## System support 🖥️
 This is currently only tested on a Linux system; but support for other platforms is planned.
+
+## Demo 🛠️
+For a demo of FlitDB in action, take a look at this [example program](demo/README.md) for more...
 
 ## Awards 🏆
  - Royal Hackaway v4 - Grand Prize 🥇
