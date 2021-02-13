@@ -175,6 +175,7 @@ void flitdb::clear_values()
 	value.bool_value = false;
 	strncpy(value.char_value, "\0", sizeof(value.char_value));
 	value_type = 0;
+	value_retrieved = false;
 	strncpy(buffer, "\0", sizeof(buffer));
 }
 
@@ -229,7 +230,7 @@ int flitdb::insert_value(signed long long int set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0)
+	if (value_type != 0 && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
@@ -247,7 +248,7 @@ int flitdb::insert_value(long double set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0)
+	if (value_type != 0 && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
@@ -265,7 +266,7 @@ int flitdb::insert_value(float set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0)
+	if (value_type != 0 && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
@@ -283,7 +284,7 @@ int flitdb::insert_value(char *set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0)
+	if (value_type != 0 && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
@@ -306,7 +307,7 @@ int flitdb::insert_value(bool set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0)
+	if (value_type != 0 && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
@@ -317,12 +318,18 @@ int flitdb::insert_value(bool set_value)
 	return FLITDB_DONE;
 }
 
+int flitdb::insert_reset()
+{
+	clear_values();
+	return FLITDB_DONE;
+}
+
 signed long long flitdb::retrieve_value_int()
 {
 	return value.int_value;
 }
 
-double flitdb::retrieve_value_double()
+long double flitdb::retrieve_value_double()
 {
 	return value.double_value;
 }
@@ -340,6 +347,11 @@ char *flitdb::retrieve_value_char()
 bool flitdb::retrieve_value_bool()
 {
 	return value.bool_value;
+}
+
+int flitdb::retrieve_value_type()
+{
+	return value_type;
 }
 
 int flitdb::read_at(unsigned short column_position, unsigned short row_position)
@@ -376,7 +388,7 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 			break;
 		if (read_length == 15)
 		{
-			char *skip_amount_read = new char[5];
+			char skip_amount_read[5];
 			skip_amount_read[4] = '\0';
 			skip_amount_read[0] = buffer[0];
 			skip_amount_read[1] = buffer[1];
@@ -388,17 +400,15 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 				return FLITDB_ERROR;
 			}
 			skip_offset += (to_short(skip_amount_read) + 1);
-			delete skip_amount_read;
 			if (skip_offset > column_position)
 				return FLITDB_NULL;
-			char *row_count_read = new char[4];
+			char row_count_read[4];
 			row_count_read[3] = '\0';
 			row_count_read[0] = buffer[4];
 			row_count_read[1] = buffer[5];
 			row_count_read[2] = buffer[6];
 			row_count = to_short(row_count_read) + 1;
 			row_position_count = 0;
-			delete row_count_read;
 		}
 		unsigned char set_read_length = 15;
 		if (skip_offset == column_position)
@@ -423,14 +433,13 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 			row_count -= 1;
 			set_read_length = 8;
 		}
-		char *response_length_read = new char[5];
+		char response_length_read[5];
 		response_length_read[4] = '\0';
 		response_length_read[0] = buffer[(read_length < 15) ? 3 : 10];
 		response_length_read[1] = buffer[(read_length < 15) ? 4 : 11];
 		response_length_read[2] = buffer[(read_length < 15) ? 5 : 12];
 		response_length_read[3] = buffer[(read_length < 15) ? 6 : 13];
 		unsigned short response_length = to_short(response_length_read) + 1;
-		delete response_length_read;
 		unsigned char data_type;
 		switch (buffer[(read_length < 15) ? 7 : 14])
 		{
@@ -465,6 +474,8 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 		}
 		if (store_response)
 		{
+			value_type = data_type;
+			value_retrieved = true;
 			char *response_value = new char[(response_length + 1)];
 			response_value[response_length] = '\0';
 			read_status = pread64(file_descriptor, response_value, response_length, offset);
@@ -493,7 +504,7 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 			default:
 				break;
 			}
-			delete response_value;
+			delete [] response_value;
 			return FLITDB_DONE;
 		}
 		read_length = set_read_length;
@@ -1215,7 +1226,8 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			}
 		}
 	}
-	delete [] input_buffer;
+	if (value_type != 0)
+		delete [] input_buffer;
 	if ((update_next > 0 && (update_next < size || update_override_cancel == 0) && update_override_cancel != 2 && update_next != size) || update_override_cancel == 3)
 	{
 		strncpy(buffer, "\0", sizeof(buffer));

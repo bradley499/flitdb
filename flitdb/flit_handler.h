@@ -23,6 +23,7 @@ private:
 		bool bool_value;
 	} value;
 	unsigned char value_type;
+	bool value_retrieved = false;
 	size_t size;
 	bool read_only;
 	void clear_values();
@@ -44,11 +45,13 @@ public:
 	int insert_value(float set_value);
 	int insert_value(char* set_value);
 	int insert_value(bool set_value);
+	int insert_reset();
 	signed long long int retrieve_value_int();
-	double retrieve_value_double();
+	long double retrieve_value_double();
 	float retrieve_value_float();
 	char* retrieve_value_char();
 	bool retrieve_value_bool();
+	int retrieve_value_type();
 };
 
 #include "flit.h"
