@@ -1,19 +1,34 @@
 GCC=g++
-ARGS=-Wall
 SRCDIR=../flitdb
-FILES := flit.cpp flit.h flit_handler.cpp flit_handler.h misc.cpp misc.h 
+ARGS=-Wall
+BASE_HEADER=flit.h
+FILES:=flit.cpp $(BASE_HEADER) flit_handler.cpp flit_handler.h misc.cpp misc.h 
 
-default: setup compile run
+
+.PHONY: build
+default: setup build
 
 setup:
 	@mkdir -pv build
 	@cp -rnv $(FILES:%=$(SRCDIR)/%) .
 
-compile:
-	@echo -n "\nCompiling... "
+setup_lib:
+	@mkdir -pv build
+	@cp -rnv $(BASE_HEADER:%=$(SRCDIR)/%) .
+
+build:
+	@echo -n "Compiling... "
 	@$(GCC) $(ARGS) "./main.cpp" -o "./build/demo"
 	@echo "Done"
-	@echo "=================\n"
+
+build_lib:
+	@cd $(SRCDIR) && $(MAKE)
+	@echo -n "\nCompiling with shared library... "
+	@$(GCC) $(ARGS) -DFLITDB_LIB_DEMO "./main.cpp" -lflitdb -o "./build/demo"
+	@echo "Done"
+
+lib: setup_lib build_lib
+
 run:
 	@cd build; ./demo
 

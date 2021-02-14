@@ -1,6 +1,10 @@
 #include <iostream>
+#ifndef FLITDB_LIB_DEMO
 #include "flit_handler.cpp"
 #include "flit.cpp"
+#else
+#include "flit.h"
+#endif
 
 int main()
 {
