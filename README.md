@@ -13,7 +13,7 @@ Instructions are good, but are even better, when they can be utilized in the con
 This is currently only tested on a Linux system; but support for other platforms is planned.
 
 ## Demo 🛠️
-For a demo of FlitDB in action, take a look at this [example program](demo/README.md) for more...
+For a demo of FlitDB in action, take a look at this [example program](demo) for more...
 
 ## Awards 🏆
  - Royal Hackaway v4 - Grand Prize 🥇
