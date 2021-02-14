@@ -6,7 +6,7 @@ int main()
 {
 	unsigned char authors_count = 3;
 	const char *authors[authors_count] = {"Bradley Marshall\0", "Matt Dear\0", "John Hawkins\0"};
-	flitdb *flit = new flitdb();
+	flitdb *flit;
 	if (flitdb_setup("demo.db", flit, FLITDB_CREATE) != FLITDB_SUCCESS)
 	{
 		std::cout << flitdb_errmsg(flit) << std::endl;
@@ -40,7 +40,8 @@ int main()
 		return 1;
 	}
 	}
-	std::cout<<std::endl<<"Authors:"<<std::endl;
+	std::cout << std::endl
+			  << "Authors:" << std::endl;
 	for (unsigned char i = 1; i <= authors_count; i++)
 	{
 		switch (flitdb_extract(flit, 2, i))
@@ -48,7 +49,7 @@ int main()
 		case FLITDB_DONE:
 		case FLITDB_NULL:
 		{
-			std::cout << "- "<<flitdb_retrieve_char(flit) << ((i < authors_count) ? "," : ".") << std::endl;
+			std::cout << "- " << flitdb_retrieve_char(flit) << ((i < authors_count) ? "," : ".") << std::endl;
 			flitdb_delete(flit, 2, i);
 			break;
 		}
@@ -59,5 +60,6 @@ int main()
 		}
 		}
 	}
+	flitdb_close(flit);
 	return 0;
 }
