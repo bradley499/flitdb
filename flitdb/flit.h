@@ -1,4 +1,3 @@
-#pragma once
 #ifndef flit_h
 #define flit_h
 

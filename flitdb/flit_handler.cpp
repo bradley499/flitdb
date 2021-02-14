@@ -1,4 +1,3 @@
-#pragma once
 #ifndef flit_handler_cpp
 #define flit_handler_cpp
 
@@ -8,6 +7,7 @@
 #include <fcntl.h>
 #include <iostream>
 #include "flit_handler.h"
+#include "flit.cpp"
 #include "misc.cpp"
 
 flitdb::flitdb()

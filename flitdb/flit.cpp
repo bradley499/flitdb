@@ -1,8 +1,8 @@
-#pragma once
 #ifndef flit_cpp
 #define flit_cpp
 
 #include "flit.h"
+#include "misc.cpp"
 
 int flitdb_setup(const char *filename, flitdb *&handler, int flags)
 {
