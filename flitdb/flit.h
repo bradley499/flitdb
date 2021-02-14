@@ -28,7 +28,15 @@ typedef class flitdb;
  * @param flags The read write operation flags to set on the database file
  * @return int 
  */
-int flitdb_setup(const char *filename, flitdb *handler, int flags); //test
+int flitdb_setup(const char *filename, flitdb *&handler, int flags);
+
+/**
+ * @brief Close the connection to the database, and delete the FlitDB handler object
+ * 
+ * @param handler The FlitDB handler The FlitDB handler
+ * @return int 
+ */
+int flitdb_close(flitdb *&handler);
 
 /**
  * @brief Retrieve an error message from the FlitDB handler if once exists

@@ -4,9 +4,16 @@
 
 #include "flit.h"
 
-int flitdb_setup(const char *filename, flitdb *handler, int flags)
+int flitdb_setup(const char *filename, flitdb *&handler, int flags)
 {
+	handler = new flitdb;
 	return handler->setup(filename, flags);
+}
+
+int flitdb_close(flitdb *&handler)
+{
+	delete handler;
+	return FLITDB_DONE;
 }
 
 char *flitdb_errmsg(flitdb *handler)

@@ -27,8 +27,12 @@ flitdb::flitdb()
 
 flitdb::~flitdb()
 {
-	flock(file_descriptor, LOCK_UN);
-	close(file_descriptor);
+	if (configured)
+	{
+		configured = false;
+		flock(file_descriptor, LOCK_UN);
+		close(file_descriptor);
+	}
 }
 
 constexpr unsigned long long flitdb::max_size()
