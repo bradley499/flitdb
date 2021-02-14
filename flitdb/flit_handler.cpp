@@ -1095,13 +1095,9 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		else if (input_size > current_length)
 		{
 			// Insert more
-			if (current_length > 0)
+			if (current_length == 0)
 			{
 				offset[0] -= 8;
-			}
-			else
-			{
-				offset[0] -=8;
 				char row_buffer[4];
 				strncpy(row_buffer, "\0", 4);
 				snprintf(row_buffer, sizeof(row_buffer), "%d", row_count[1]);
@@ -1139,7 +1135,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			if (current_length > 0)
 			{
 				size += (input_size - current_length);
-				offset[0] -= 7;
+				offset[0] -= 8;
 			}
 			else
 				size += (input_size + 8);
