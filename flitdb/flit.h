@@ -4,7 +4,8 @@
 typedef unsigned long uint64_t;
 
 #ifndef flitdb_class_configured
-typedef class flitdb;
+class flitdb {};
+typedef flitdb flitdb;
 #endif
 
 #define FLITDB_SUCCESS		0  // Successful operation
