@@ -1,6 +1,8 @@
 #ifndef flit_handler_h
 #define flit_handler_h
 
+#include "flit_version.h"
+
 #define flitdb_class_configured
 
 class flitdb
@@ -32,10 +34,11 @@ private:
 	double to_double(char* chars);
 	float to_float(char* chars);
 	char* to_char_array(double number);
+	const int flitdb_version = FLITDB_VERSION;
 public:
 	flitdb();
 	~flitdb();
-	int setup(const char *filename, int flags);
+	int setup(const char *filename, int flags, int version);
 	char* get_err_message();
 	int read_at(unsigned short column_position, unsigned short row_position);
 	int insert_at(unsigned short column_position, unsigned short row_position);

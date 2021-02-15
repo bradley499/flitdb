@@ -1,5 +1,6 @@
 #ifndef flit_h
 #define flit_h
+#include "flit_version.h"
 
 typedef unsigned long uint64_t;
 
@@ -7,6 +8,7 @@ typedef unsigned long uint64_t;
 class flitdb {};
 typedef flitdb flitdb;
 #endif
+int flitdb_api_version = FLITDB_VERSION;
 
 #define FLITDB_SUCCESS		0  // Successful operation
 #define FLITDB_ERROR		1  // Unsuccessful operation

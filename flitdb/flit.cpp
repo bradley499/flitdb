@@ -7,7 +7,7 @@
 int flitdb_setup(const char *filename, flitdb *&handler, int flags)
 {
 	handler = new flitdb;
-	return handler->setup(filename, flags);
+	return handler->setup(filename, flags, flitdb_api_version);
 }
 
 int flitdb_close(flitdb *&handler)

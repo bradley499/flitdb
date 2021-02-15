@@ -1,6 +1,5 @@
 #ifndef flit_handler_cpp
 #define flit_handler_cpp
-
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -13,7 +12,6 @@
 flitdb::flitdb()
 {
 	configured = (max_buffer_size < 50 || max_buffer_size > 1024);
-	value_type = 0;
 	size = 0;
 	read_only = false;
 	if (max_buffer_size < 50)
@@ -183,12 +181,17 @@ void flitdb::clear_values()
 	strncpy(buffer, "\0", sizeof(buffer));
 }
 
-int flitdb::setup(const char *filename, int flags)
+int flitdb::setup(const char *filename, int flags, int version)
 {
 	if (configured)
 	{
 		if (max_buffer_size >= 50 && max_buffer_size <= 1024)
 			err_message = (char *)"The database handler has already been attributed to handle another database\0";
+		return FLITDB_ERROR;
+	}
+	else if (flitdb_version != version)
+	{
+		err_message = (char *)"The version of the FlitDB database handler is not supported by the API version used\0";
 		return FLITDB_ERROR;
 	}
 	struct stat buffer;
