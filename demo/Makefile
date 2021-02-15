@@ -1,7 +1,7 @@
 GCC=g++
 SRCDIR=../flitdb
 ARGS=-Wall
-BASE_HEADER=flit.h
+BASE_HEADER=flit.h flit_version.h
 FILES:=flit.cpp $(BASE_HEADER) flit_handler.cpp flit_handler.h misc.cpp misc.h 
 
 
