@@ -232,6 +232,11 @@ char* flitdb::get_err_message()
 
 int flitdb::insert_value(signed long long int set_value)
 {
+	if (!configured)
+	{
+		err_message = (char *)"The database handler has not been attributed to handle a database";
+		return FLITDB_ERROR;
+	}
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
@@ -250,6 +255,11 @@ int flitdb::insert_value(signed long long int set_value)
 
 int flitdb::insert_value(long double set_value)
 {
+	if (!configured)
+	{
+		err_message = (char *)"The database handler has not been attributed to handle a database";
+		return FLITDB_ERROR;
+	}
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
@@ -268,6 +278,11 @@ int flitdb::insert_value(long double set_value)
 
 int flitdb::insert_value(float set_value)
 {
+	if (!configured)
+	{
+		err_message = (char *)"The database handler has not been attributed to handle a database";
+		return FLITDB_ERROR;
+	}
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
@@ -286,6 +301,11 @@ int flitdb::insert_value(float set_value)
 
 int flitdb::insert_value(char *set_value)
 {
+	if (!configured)
+	{
+		err_message = (char *)"The database handler has not been attributed to handle a database";
+		return FLITDB_ERROR;
+	}
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
@@ -309,6 +329,11 @@ int flitdb::insert_value(char *set_value)
 
 int flitdb::insert_value(bool set_value)
 {
+	if (!configured)
+	{
+		err_message = (char *)"The database handler has not been attributed to handle a database";
+		return FLITDB_ERROR;
+	}
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
@@ -363,6 +388,11 @@ int flitdb::retrieve_value_type()
 
 int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 {
+	if (!configured)
+	{
+		err_message = (char *)"The database handler has not been attributed to handle a database";
+		return FLITDB_ERROR;
+	}
 	clear_values();
 	if (column_position == 0 || column_position > column_position_max || row_position == 0 || row_position > row_position_max)
 	{
@@ -522,6 +552,11 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 
 int flitdb::insert_at(unsigned short column_position, unsigned short row_position)
 {
+	if (!configured)
+	{
+		err_message = (char *)"The database handler has not been attributed to handle a database";
+		return FLITDB_ERROR;
+	}
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
@@ -1233,6 +1268,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		delete [] input_buffer;
 	if ((update_next > 0 && (update_next < size || update_override_cancel == 0) && update_override_cancel != 2 && update_next != size) || update_override_cancel == 3)
 	{
+		// Update skip amount for the next data group along after request.
 		strncpy(buffer, "\0", sizeof(buffer));
 		pread64(file_descriptor, buffer, 4, update_next);
 		unsigned short skip_amount_reducer = to_short(buffer);
@@ -1272,7 +1308,6 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		}
 		pwrite64(file_descriptor, skip_offset_buffer, 4, update_next);
 	}
-	// Update skip amount for the next data group along after request.
 	clear_values();
 	return FLITDB_DONE;
 }
