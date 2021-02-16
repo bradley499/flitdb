@@ -176,7 +176,7 @@ void flitdb::clear_values()
 	value.float_value = 0;
 	value.bool_value = false;
 	strncpy(value.char_value, "\0", sizeof(value.char_value));
-	value_type = 0;
+	value_type = FLITDB_NULL;
 	value_retrieved = false;
 	strncpy(buffer, "\0", sizeof(buffer));
 }
@@ -242,13 +242,13 @@ int flitdb::insert_value(signed long long int set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0 && !value_retrieved)
+	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
 	}
 	clear_values();
-	value_type = 1;
+	value_type = FLITDB_INTEGER;
 	value.int_value = set_value;
 	return FLITDB_DONE;
 }
@@ -265,13 +265,13 @@ int flitdb::insert_value(long double set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0 && !value_retrieved)
+	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
 	}
 	clear_values();
-	value_type = 2;
+	value_type = FLITDB_DOUBLE;
 	value.double_value = set_value;
 	return FLITDB_DONE;
 }
@@ -288,13 +288,13 @@ int flitdb::insert_value(float set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0 && !value_retrieved)
+	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
 	}
 	clear_values();
-	value_type = 3;
+	value_type = FLITDB_FLOAT;
 	value.float_value = set_value;
 	return FLITDB_DONE;
 }
@@ -311,7 +311,7 @@ int flitdb::insert_value(char *set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0 && !value_retrieved)
+	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
@@ -322,7 +322,7 @@ int flitdb::insert_value(char *set_value)
 		return FLITDB_ERROR;
 	}
 	clear_values();
-	value_type = 4;
+	value_type = FLITDB_CHAR;
 	strncpy(value.char_value, set_value, sizeof(value.char_value));
 	return FLITDB_DONE;
 }
@@ -339,13 +339,13 @@ int flitdb::insert_value(bool set_value)
 		err_message = (char *)"The database was opened in readonly mode";
 		return FLITDB_READONLY;	
 	}
-	if (value_type != 0 && !value_retrieved)
+	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
 		err_message = (char *)"Data insertion avoided due to unexpected tennant";
 		return FLITDB_ERROR;
 	}
 	clear_values();
-	value_type = 5;
+	value_type = FLITDB_BOOL;
 	value.bool_value = set_value;
 	return FLITDB_DONE;
 }
@@ -481,19 +481,19 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 		switch (buffer[(read_length < 15) ? 7 : 14])
 		{
 		case '1':
-			data_type = 1;
+			data_type = FLITDB_INTEGER;
 			break;
 		case '2':
-			data_type = 2;
+			data_type = FLITDB_DOUBLE;
 			break;
 		case '3':
-			data_type = 3;
+			data_type = FLITDB_FLOAT;
 			break;
 		case '4':
-			data_type = 4;
+			data_type = FLITDB_CHAR;
 			break;
 		case '5':
-			data_type = 5;
+			data_type = FLITDB_BOOL;
 			break;
 		default:
 			err_message = (char *)"The database yielded an invalid datatype\0";
@@ -504,7 +504,7 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 			err_message = (char *)"A reference to an imposed data declaration holds no length\0";
 			return FLITDB_CORRUPT;
 		}
-		else if (data_type == 5 && response_length != 1)
+		else if (data_type == FLITDB_BOOL && response_length != 1)
 		{
 			err_message = (char *)"The database holds a boolean of a possible elongated length\0";
 			return FLITDB_CORRUPT;
@@ -523,19 +523,19 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 			}
 			switch (data_type)
 			{
-			case 1:
+			case FLITDB_INTEGER:
 				value.int_value = to_long_long(response_value);
 				break;
-			case 2:
+			case FLITDB_DOUBLE:
 				value.double_value = to_double(response_value);
 				break;
-			case 3:
+			case FLITDB_FLOAT:
 				value.float_value = to_float(response_value);
 				break;
-			case 4:
+			case FLITDB_CHAR:
 				strncpy(value.char_value, response_value, sizeof(value.char_value));
 				break;
-			case 5:
+			case FLITDB_BOOL:
 				value.bool_value = (response_value[0] == '1');
 				break;
 			default:
@@ -574,7 +574,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 	unsigned short input_size = 0;
 	switch (value_type)
 	{
-	case 1:
+	case FLITDB_INTEGER:
 	{
 		input_buffer = new char[64];
 		int ret = snprintf(input_buffer, 64, "%lld", value.int_value);
@@ -588,7 +588,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		input_size = strlen(input_buffer);
 		break;
 	}
-	case 2:
+	case FLITDB_DOUBLE:
 	{
 		input_buffer = new char[96];
 		int ret = snprintf(input_buffer, 96, "%Lf", value.double_value);
@@ -610,7 +610,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		input_size = strlen(input_buffer);
 		break;
 	}
-	case 3:
+	case FLITDB_FLOAT:
 	{
 		input_buffer = new char[32];
 		int ret = snprintf(input_buffer, 32, "%f", value.float_value);
@@ -631,7 +631,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		input_size = strlen(input_buffer);
 		break;
 	}
-	case 4:
+	case FLITDB_CHAR:
 	{
 		input_size = strlen(value.char_value);
 		input_buffer = new char[input_size + 1];
@@ -639,7 +639,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		strncpy(input_buffer, value.char_value, input_size);
 		break;
 	}
-	case 5:
+	case FLITDB_BOOL:
 	{
 		input_buffer = new char[1];
 		if (value.bool_value)
@@ -976,19 +976,19 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		pwrite64(file_descriptor, input_length_buffer, 4, offset[0] + 10);
 		switch (value_type)
 		{
-			case 1:
+			case FLITDB_INTEGER:
 				pwrite64(file_descriptor, "1", 1, (offset[0] + 14));
 				break;
-			case 2:
+			case FLITDB_DOUBLE:
 				pwrite64(file_descriptor, "2", 1, (offset[0] + 14));
 				break;
-			case 3:
+			case FLITDB_FLOAT:
 				pwrite64(file_descriptor, "3", 1, (offset[0] + 14));
 				break;
-			case 4:
+			case FLITDB_CHAR:
 				pwrite64(file_descriptor, "4", 1, (offset[0] + 14));
 				break;
-			case 5:
+			case FLITDB_BOOL:
 				pwrite64(file_descriptor, "5", 1, (offset[0] + 14));
 				break;
 		}
@@ -1101,19 +1101,19 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 				pwrite64(file_descriptor, input_length_buffer, 4, offset[3] - 5);
 				switch (value_type)
 				{
-					case 1:
+					case FLITDB_INTEGER:
 						pwrite64(file_descriptor, "1", 1, (offset[3] - 1));
 						break;
-					case 2:
+					case FLITDB_DOUBLE:
 						pwrite64(file_descriptor, "2", 1, (offset[3] - 1));
 						break;
-					case 3:
+					case FLITDB_FLOAT:
 						pwrite64(file_descriptor, "3", 1, (offset[3] - 1));
 						break;
-					case 4:
+					case FLITDB_CHAR:
 						pwrite64(file_descriptor, "4", 1, (offset[3] - 1));
 						break;
-					case 5:
+					case FLITDB_BOOL:
 						pwrite64(file_descriptor, "5", 1, (offset[3] - 1));
 						break;
 				}
@@ -1222,19 +1222,19 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			pwrite64(file_descriptor, input_length_buffer, 4, (offset[0] + 3));
 			switch (value_type)
 			{
-				case 1:
+				case FLITDB_INTEGER:
 					pwrite64(file_descriptor, "1", 1, (offset[0] + 7));
 					break;
-				case 2:
+				case FLITDB_DOUBLE:
 					pwrite64(file_descriptor, "2", 1, (offset[0] + 7));
 					break;
-				case 3:
+				case FLITDB_FLOAT:
 					pwrite64(file_descriptor, "3", 1, (offset[0] + 7));
 					break;
-				case 4:
+				case FLITDB_CHAR:
 					pwrite64(file_descriptor, "4", 1, (offset[0] + 7));
 					break;
-				case 5:
+				case FLITDB_BOOL:
 					pwrite64(file_descriptor, "5", 1, (offset[0] + 7));
 					break;
 			}
@@ -1246,25 +1246,25 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			pwrite64(file_descriptor, input_buffer, input_size, offset[0]);
 			switch (value_type)
 			{
-				case 1:
+				case FLITDB_INTEGER:
 					pwrite64(file_descriptor, "1", 1, (offset[0] - 1));
 					break;
-				case 2:
+				case FLITDB_DOUBLE:
 					pwrite64(file_descriptor, "2", 1, (offset[0] - 1));
 					break;
-				case 3:
+				case FLITDB_FLOAT:
 					pwrite64(file_descriptor, "3", 1, (offset[0] - 1));
 					break;
-				case 4:
+				case FLITDB_CHAR:
 					pwrite64(file_descriptor, "4", 1, (offset[0] - 1));
 					break;
-				case 5:
+				case FLITDB_BOOL:
 					pwrite64(file_descriptor, "5", 1, (offset[0] - 1));
 					break;
 			}
 		}
 	}
-	if (value_type != 0)
+	if (value_type != FLITDB_NULL)
 		delete [] input_buffer;
 	if ((update_next > 0 && (update_next < size || update_override_cancel == 0) && update_override_cancel != 2 && update_next != size) || update_override_cancel == 3)
 	{
