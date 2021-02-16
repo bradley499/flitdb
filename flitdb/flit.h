@@ -21,7 +21,7 @@ int flitdb_api_version = FLITDB_VERSION;
 #define FLITDB_NULL			8  // The operation resulted in a null lookup
 #define FLITDB_CREATE		9  // Create a database if not existent
 #define FLITDB_READONLY		10 // Only allow the reading of the database
-#define FLITDB_INTEGER		11 // The value type of interger
+#define FLITDB_INTEGER		11 // The value type of integer
 #define FLITDB_DOUBLE		12 // The value type of double
 #define FLITDB_FLOAT		13 // The value type of float
 #define FLITDB_CHAR			14 // The value type of char
