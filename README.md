@@ -12,6 +12,9 @@ Instructions are good, but are even better, when they can be utilized in the con
 ## System support 🖥️
 This is currently only tested on a Linux system; but support for other platforms is planned.
 
+## Syntax 🗂️
+Take a look at the API syntax used to handler and manage a database connection through FlitDB. A thorough explanation of each function, and their return values, are all documented and can be viewed in the [FlitDB syntax manual](SYNTAX.md).
+
 ## Demo 🛠️
 For a demo of FlitDB in action, take a look at this [example program](demo) for more...
 
