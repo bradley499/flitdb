@@ -873,12 +873,30 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 	}
 	unsigned short update_next = 0;
 	unsigned char update_override_cancel = 0;
+	struct relinquish_excersion
+	{
+		unsigned short size = 0;
+		unsigned short position = 0;
+		bool use = false;
+	};
+	relinquish_excersion *info_skip_offset = new relinquish_excersion();
+	relinquish_excersion *info_row_count = new relinquish_excersion();
+	relinquish_excersion *info_row_position = new relinquish_excersion();
+	relinquish_excersion *info_input_size = new relinquish_excersion();
+	relinquish_excersion *info_input_type = new relinquish_excersion();
+	relinquish_excersion *info_input_buffer = new relinquish_excersion();
 	if (offset[0] == offset[1])
 	{
 		offset[1] -= 1;
 		if (input_size == 0)
 		{
 			delete [] input_buffer;
+			delete info_skip_offset;
+			delete info_row_count;
+			delete info_row_position;
+			delete info_input_size;
+			delete info_input_type;
+			delete info_input_buffer;
 			clear_values();
 			return FLITDB_DONE;
 		}
@@ -904,95 +922,24 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 				pwrite64(file_descriptor, buffer, buffer_size, (reference_position + offset_sizing));
 			}
 		}
-		unsigned short skip_amount = (column_position - skip_offset[0] - 1);
-		char skip_offset_buffer[5];
-		strncpy(skip_offset_buffer, "\0", 5);
-		snprintf(skip_offset_buffer, sizeof(skip_offset_buffer), "%d", skip_amount);
-		if (skip_amount < 10)
-		{
-			skip_offset_buffer[3] = skip_offset_buffer[0];
-			skip_offset_buffer[2] = '0';
-			skip_offset_buffer[1] = '0';
-			skip_offset_buffer[0] = '0';
-		}
-		else if (skip_amount < 100)
-		{
-			skip_offset_buffer[3] = skip_offset_buffer[1];
-			skip_offset_buffer[2] = skip_offset_buffer[0];
-			skip_offset_buffer[1] = '0';
-			skip_offset_buffer[0] = '0';
-		}
-		else if (skip_amount < 1000)
-		{
-			skip_offset_buffer[3] = skip_offset_buffer[2];
-			skip_offset_buffer[2] = skip_offset_buffer[1];
-			skip_offset_buffer[1] = skip_offset_buffer[0];
-			skip_offset_buffer[0] = '0';
-		}
-		pwrite64(file_descriptor, skip_offset_buffer, 4, offset[0]);
-		pwrite64(file_descriptor, "000", 3, offset[0] + 4);
-		char position_buffer[4];
-		strncpy(position_buffer, "\0", 4);
-		snprintf(position_buffer, sizeof(position_buffer), "%d", row_position);
-		if (row_position < 10)
-		{
-			position_buffer[2] = position_buffer[0];
-			position_buffer[1] = '0';
-			position_buffer[0] = '0';
-		}
-		else if (row_position < 100)
-		{
-			position_buffer[2] = position_buffer[1];
-			position_buffer[1] = position_buffer[0];
-			position_buffer[0] = '0';
-		}
-		pwrite64(file_descriptor, position_buffer, 3, offset[0] + 7);
-		char input_length_buffer[5];
-		strncpy(input_length_buffer, "\0", 5);
-		input_size -= 1;
-		snprintf(input_length_buffer, sizeof(input_length_buffer), "%d", input_size);
-		if (input_size < 10)
-		{
-			input_length_buffer[3] = input_length_buffer[0];
-			input_length_buffer[2] = '0';
-			input_length_buffer[1] = '0';
-			input_length_buffer[0] = '0';
-		}
-		else if (input_size < 100)
-		{
-			input_length_buffer[3] = input_length_buffer[1];
-			input_length_buffer[2] = input_length_buffer[0];
-			input_length_buffer[1] = '0';
-			input_length_buffer[0] = '0';
-		}
-		else if (input_size < 1000)
-		{
-			input_length_buffer[3] = input_length_buffer[2];
-			input_length_buffer[2] = input_length_buffer[1];
-			input_length_buffer[1] = input_length_buffer[0];
-			input_length_buffer[0] = '0';
-		}
-		input_size += 1;
-		pwrite64(file_descriptor, input_length_buffer, 4, offset[0] + 10);
-		switch (value_type)
-		{
-			case FLITDB_INTEGER:
-				pwrite64(file_descriptor, "1", 1, (offset[0] + 14));
-				break;
-			case FLITDB_DOUBLE:
-				pwrite64(file_descriptor, "2", 1, (offset[0] + 14));
-				break;
-			case FLITDB_FLOAT:
-				pwrite64(file_descriptor, "3", 1, (offset[0] + 14));
-				break;
-			case FLITDB_CHAR:
-				pwrite64(file_descriptor, "4", 1, (offset[0] + 14));
-				break;
-			case FLITDB_BOOL:
-				pwrite64(file_descriptor, "5", 1, (offset[0] + 14));
-				break;
-		}
-		pwrite64(file_descriptor, input_buffer, input_size, offset[0] + 15);
+		info_skip_offset->size = (column_position - skip_offset[0] - 1);
+		info_skip_offset->position = offset[0];
+		info_skip_offset->use = true;
+		info_row_count->size = 0;
+		info_row_count->position = (offset[0] + 4);
+		info_row_count->use = true;
+		info_row_position->size = row_position;
+		info_row_position->position = offset[0] + 7;
+		info_row_position->use = true;
+		info_input_size->size = (input_size - 1);
+		info_input_size->position = (offset[0] + 10);
+		info_input_size->use = true;
+		info_input_type->size = value_type;
+		info_input_type->position = (offset[0] + 14);
+		info_input_type->use = true;
+		info_input_buffer->size = input_size;
+		info_input_buffer->position = (offset[0] + 15);
+		info_input_buffer->use = true;
 		unsigned long long incremental_size = input_size + 15;
 		if (offset[0] < size)
 			update_next = (offset[0] + incremental_size);
@@ -1025,22 +972,9 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 					if (insertion_state[0] == 2)
 						offset_sizing -= 7;
 					row_count[1] -= 2;
-					char position_buffer[4];
-					strncpy(position_buffer, "\0", 4);
-					snprintf(position_buffer, sizeof(position_buffer), "%d", row_count[1]);
-					if (row_count[1] < 10)
-					{
-						position_buffer[2] = position_buffer[0];
-						position_buffer[1] = '0';
-						position_buffer[0] = '0';
-					}
-					else if (row_count[1] < 100)
-					{
-						position_buffer[2] = position_buffer[1];
-						position_buffer[1] = position_buffer[0];
-						position_buffer[0] = '0';
-					}
-					pwrite64(file_descriptor, position_buffer, 3, (offset[1] + 4));
+					info_row_count->size = row_count[1];
+					info_row_count->position = (offset[1] + 4);
+					info_row_count->use = true;
 					deleted_column[1] = true;
 				}
 				else
@@ -1072,52 +1006,15 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			}
 			if (!deleted_column[0] && !deleted_column[1])
 			{
-				char input_length_buffer[5];
-				strncpy(input_length_buffer, "\0", 5);
-				input_size -= 1;
-				snprintf(input_length_buffer, sizeof(input_length_buffer), "%d", input_size);
-				if (input_size < 10)
-				{
-					input_length_buffer[3] = input_length_buffer[0];
-					input_length_buffer[2] = '0';
-					input_length_buffer[1] = '0';
-					input_length_buffer[0] = '0';
-				}
-				else if (input_size < 100)
-				{
-					input_length_buffer[3] = input_length_buffer[1];
-					input_length_buffer[2] = input_length_buffer[0];
-					input_length_buffer[1] = '0';
-					input_length_buffer[0] = '0';
-				}
-				else if (input_size < 1000)
-				{
-					input_length_buffer[3] = input_length_buffer[2];
-					input_length_buffer[2] = input_length_buffer[1];
-					input_length_buffer[1] = input_length_buffer[0];
-					input_length_buffer[0] = '0';
-				}
-				input_size += 1;
-				pwrite64(file_descriptor, input_length_buffer, 4, offset[3] - 5);
-				switch (value_type)
-				{
-					case FLITDB_INTEGER:
-						pwrite64(file_descriptor, "1", 1, (offset[3] - 1));
-						break;
-					case FLITDB_DOUBLE:
-						pwrite64(file_descriptor, "2", 1, (offset[3] - 1));
-						break;
-					case FLITDB_FLOAT:
-						pwrite64(file_descriptor, "3", 1, (offset[3] - 1));
-						break;
-					case FLITDB_CHAR:
-						pwrite64(file_descriptor, "4", 1, (offset[3] - 1));
-						break;
-					case FLITDB_BOOL:
-						pwrite64(file_descriptor, "5", 1, (offset[3] - 1));
-						break;
-				}
-				pwrite64(file_descriptor, input_buffer, input_size, offset[3]);
+				info_input_size->size = (input_size - 1);
+				info_input_size->position = (offset[3] - 5);
+				info_input_size->use = true;
+				info_input_type->size = value_type;
+				info_input_type->position = ((offset[3] - 1));
+				info_input_type->use = true;
+				info_input_buffer->size = input_size;
+				info_input_buffer->position = offset[3];
+				info_input_buffer->use = true;
 			}
 			size -= offset_sizing;
 			if (size == offset[1])
@@ -1125,6 +1022,12 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			if (ftruncate(file_descriptor, size) != 0)
 			{
 				delete [] input_buffer;
+				delete info_skip_offset;
+				delete info_row_count;
+				delete info_row_position;
+				delete info_input_size;
+				delete info_input_type;
+				delete info_input_buffer;
 				clear_values();
 				err_message = (char *)"Failed database truncation occurred\0";
 				return FLITDB_CORRUPT;
@@ -1136,22 +1039,9 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			if (current_length == 0)
 			{
 				offset[0] -= 8;
-				char row_buffer[4];
-				strncpy(row_buffer, "\0", 4);
-				snprintf(row_buffer, sizeof(row_buffer), "%d", row_count[1]);
-				if (row_count[1] < 10)
-				{
-					row_buffer[2] = row_buffer[0];
-					row_buffer[1] = '0';
-					row_buffer[0] = '0';
-				}
-				else if (row_count[1] < 100)
-				{
-					row_buffer[2] = row_buffer[1];
-					row_buffer[1] = row_buffer[0];
-					row_buffer[0] = '0';
-				}
-				pwrite64(file_descriptor, row_buffer, 3, (offset[3] + 4));
+				info_row_count->size = row_count[1];
+				info_row_count->position = (offset[3] + 4);
+				info_row_count->use = true;
 			}
 			unsigned short offset_sizing = ((current_length > 0) ? ((input_size - current_length)) : (input_size + 8));
 			unsigned short buffer_size = max_buffer_size;
@@ -1177,93 +1067,153 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			}
 			else
 				size += (input_size + 8);
-			char position_buffer[4];
-			strncpy(position_buffer, "\0", 4);
-			snprintf(position_buffer, sizeof(position_buffer), "%d", row_position);
-			if (row_position < 10)
-			{
-				position_buffer[2] = position_buffer[0];
-				position_buffer[1] = '0';
-				position_buffer[0] = '0';
-			}
-			else if (row_position < 100)
-			{
-				position_buffer[2] = position_buffer[1];
-				position_buffer[1] = position_buffer[0];
-				position_buffer[0] = '0';
-			}
-			pwrite64(file_descriptor, position_buffer, 3, offset[0]);
-			char input_length_buffer[5];
-			strncpy(input_length_buffer, "\0", 5);
-			input_size -= 1;
-			snprintf(input_length_buffer, sizeof(input_length_buffer), "%d", input_size);
-			if (input_size < 10)
-			{
-				input_length_buffer[3] = input_length_buffer[0];
-				input_length_buffer[2] = '0';
-				input_length_buffer[1] = '0';
-				input_length_buffer[0] = '0';
-			}
-			else if (input_size < 100)
-			{
-				input_length_buffer[3] = input_length_buffer[1];
-				input_length_buffer[2] = input_length_buffer[0];
-				input_length_buffer[1] = '0';
-				input_length_buffer[0] = '0';
-			}
-			else if (input_size < 1000)
-			{
-				input_length_buffer[3] = input_length_buffer[2];
-				input_length_buffer[2] = input_length_buffer[1];
-				input_length_buffer[1] = input_length_buffer[0];
-				input_length_buffer[0] = '0';
-			}
-			input_size += 1;
-			pwrite64(file_descriptor, input_length_buffer, 4, (offset[0] + 3));
-			switch (value_type)
-			{
-				case FLITDB_INTEGER:
-					pwrite64(file_descriptor, "1", 1, (offset[0] + 7));
-					break;
-				case FLITDB_DOUBLE:
-					pwrite64(file_descriptor, "2", 1, (offset[0] + 7));
-					break;
-				case FLITDB_FLOAT:
-					pwrite64(file_descriptor, "3", 1, (offset[0] + 7));
-					break;
-				case FLITDB_CHAR:
-					pwrite64(file_descriptor, "4", 1, (offset[0] + 7));
-					break;
-				case FLITDB_BOOL:
-					pwrite64(file_descriptor, "5", 1, (offset[0] + 7));
-					break;
-			}
-			pwrite64(file_descriptor, input_buffer, input_size, (offset[0] + 8));
+			info_row_position->size = row_position;
+			info_row_position->position = offset[0];
+			info_row_position->use = true;
+			info_input_size->size = (input_size - 1);
+			info_input_size->position = (offset[0] + 3);
+			info_input_size->use = true;
+			info_input_type->size = value_type;
+			info_input_type->position = (offset[0] + 8);
+			info_input_type->use = true;
+			info_input_buffer->size = input_size;
+			info_input_buffer->position = (offset[0] + 8);
+			info_input_buffer->use = true;
 		}
 		else
 		{
 			// Update value (no size change)
-			pwrite64(file_descriptor, input_buffer, input_size, offset[0]);
-			switch (value_type)
-			{
-				case FLITDB_INTEGER:
-					pwrite64(file_descriptor, "1", 1, (offset[0] - 1));
-					break;
-				case FLITDB_DOUBLE:
-					pwrite64(file_descriptor, "2", 1, (offset[0] - 1));
-					break;
-				case FLITDB_FLOAT:
-					pwrite64(file_descriptor, "3", 1, (offset[0] - 1));
-					break;
-				case FLITDB_CHAR:
-					pwrite64(file_descriptor, "4", 1, (offset[0] - 1));
-					break;
-				case FLITDB_BOOL:
-					pwrite64(file_descriptor, "5", 1, (offset[0] - 1));
-					break;
-			}
+			info_input_type->size = value_type;
+			info_input_type->position = (offset[0] - 1);
+			info_input_type->use = true;
+			info_input_buffer->size = input_size;
+			info_input_buffer->position = offset[0];
+			info_input_buffer->use = true;
 		}
 	}
+	if (info_skip_offset->use)
+	{
+		char skip_offset_buffer[5];
+		strncpy(skip_offset_buffer, "\0", 5);
+		snprintf(skip_offset_buffer, sizeof(skip_offset_buffer), "%d", info_skip_offset->size);
+		if (info_skip_offset->size < 10)
+		{
+			skip_offset_buffer[3] = skip_offset_buffer[0];
+			skip_offset_buffer[2] = '0';
+			skip_offset_buffer[1] = '0';
+			skip_offset_buffer[0] = '0';
+		}
+		else if (info_skip_offset->size < 100)
+		{
+			skip_offset_buffer[3] = skip_offset_buffer[1];
+			skip_offset_buffer[2] = skip_offset_buffer[0];
+			skip_offset_buffer[1] = '0';
+			skip_offset_buffer[0] = '0';
+		}
+		else if (info_skip_offset->size < 1000)
+		{
+			skip_offset_buffer[3] = skip_offset_buffer[2];
+			skip_offset_buffer[2] = skip_offset_buffer[1];
+			skip_offset_buffer[1] = skip_offset_buffer[0];
+			skip_offset_buffer[0] = '0';
+		}
+		pwrite64(file_descriptor, skip_offset_buffer, 4, info_skip_offset->position);
+	}
+	if (info_row_count->use)
+	{
+		char row_buffer[4];
+		strncpy(row_buffer, "\0", 4);
+		snprintf(row_buffer, sizeof(row_buffer), "%d", info_row_count->size);
+		if (info_row_count->size < 10)
+		{
+			row_buffer[2] = row_buffer[0];
+			row_buffer[1] = '0';
+			row_buffer[0] = '0';
+		}
+		else if (info_row_count->size < 100)
+		{
+			row_buffer[2] = row_buffer[1];
+			row_buffer[1] = row_buffer[0];
+			row_buffer[0] = '0';
+		}
+		pwrite64(file_descriptor, row_buffer, 3, info_row_count->position);
+	}
+	if (info_row_position->use)
+	{
+		char position_buffer[4];
+		strncpy(position_buffer, "\0", 4);
+		snprintf(position_buffer, sizeof(position_buffer), "%d", info_row_position->size);
+		if (info_row_position->size < 10)
+		{
+			position_buffer[2] = position_buffer[0];
+			position_buffer[1] = '0';
+			position_buffer[0] = '0';
+		}
+		else if (info_row_position->size < 100)
+		{
+			position_buffer[2] = position_buffer[1];
+			position_buffer[1] = position_buffer[0];
+			position_buffer[0] = '0';
+		}
+		pwrite64(file_descriptor, position_buffer, 3, info_row_position->position);
+	}
+	if (info_input_size->use)
+	{
+		char input_length_buffer[5];
+		strncpy(input_length_buffer, "\0", 5);
+		snprintf(input_length_buffer, sizeof(input_length_buffer), "%d", info_input_size->size);
+		if (info_input_size->size < 10)
+		{
+			input_length_buffer[3] = input_length_buffer[0];
+			input_length_buffer[2] = '0';
+			input_length_buffer[1] = '0';
+			input_length_buffer[0] = '0';
+		}
+		else if (info_input_size->size < 100)
+		{
+			input_length_buffer[3] = input_length_buffer[1];
+			input_length_buffer[2] = input_length_buffer[0];
+			input_length_buffer[1] = '0';
+			input_length_buffer[0] = '0';
+		}
+		else if (info_input_size->size < 1000)
+		{
+			input_length_buffer[3] = input_length_buffer[2];
+			input_length_buffer[2] = input_length_buffer[1];
+			input_length_buffer[1] = input_length_buffer[0];
+			input_length_buffer[0] = '0';
+		}
+		pwrite64(file_descriptor, input_length_buffer, 4, info_input_size->position);
+	}
+	if (info_input_type->use)
+	{
+		switch (info_input_type->size)
+		{
+			case FLITDB_INTEGER:
+				pwrite64(file_descriptor, "1", 1, info_input_type->position);
+				break;
+			case FLITDB_DOUBLE:
+				pwrite64(file_descriptor, "2", 1, info_input_type->position);
+				break;
+			case FLITDB_FLOAT:
+				pwrite64(file_descriptor, "3", 1, info_input_type->position);
+				break;
+			case FLITDB_CHAR:
+				pwrite64(file_descriptor, "4", 1, info_input_type->position);
+				break;
+			case FLITDB_BOOL:
+				pwrite64(file_descriptor, "5", 1, info_input_type->position);
+				break;
+		}
+	}
+	if (info_input_buffer->use)
+		pwrite64(file_descriptor, input_buffer, info_input_buffer->size, info_input_buffer->position);
+	delete info_skip_offset;
+	delete info_row_count;
+	delete info_row_position;
+	delete info_input_size;
+	delete info_input_type;
+	delete info_input_buffer;
 	if (value_type != FLITDB_NULL)
 		delete [] input_buffer;
 	if ((update_next > 0 && (update_next < size || update_override_cancel == 0) && update_override_cancel != 2 && update_next != size) || update_override_cancel == 3)
