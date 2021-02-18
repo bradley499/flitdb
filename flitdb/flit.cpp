@@ -1,6 +1,7 @@
 #ifndef flit_cpp
 #define flit_cpp
 
+#include "flit_handler.cpp"
 #include "flit.h"
 #include "misc.cpp"
 
