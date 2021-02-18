@@ -3,7 +3,7 @@
 <p align="center"><i><b>Verb</b> ~ Move swiftly and lightly.</i></p>
 </center>
 
-FlitDB is teeny tiny database. Databases are part of every our everyday lives; but one issue tends to arise with databases. *What is that?* Simply put, it is: **Redundancy**. With this in mind, FlitDB sets out to eliminate this by removing all unnecessary values from the data that you store.
+FlitDB is a teeny tiny database - written in C++. Databases are part of our everyday lives; but one issue tends to arise with databases. *What is that?* Simply put, it is: **Redundancy**. With this in mind, FlitDB sets out to eliminate this by removing all unnecessary values from the data that you store.
 
 You might think that this would lead to your data being: lost, mangled, or a pain to read; but it doesn't have to be. FlitDB nixes the need for redundant nullified data, by introducing a variable skip amount between each value grouping; this allows FlitDB to have a broad scope of influence over thousands of different data points, whilst yielding a smaller file size, compared to other conventional database technologies.
 
@@ -12,8 +12,15 @@ Instructions are good, but are even better, when they can be utilized in the con
 ## System support 🖥️
 This is currently only tested on a Linux system; but support for other platforms is planned.
 
+## How to use 🖇️
+### Install as library
+To install FlitDB as a shared library, simply navigate to the [`flitdb`](flitdb) directory and run the command `make`; this command will compile FlitDB into a shared library, and install it into the `/usr/lib` directory. Then to access the library, all you need to do is include the file [`flitdb/flit.h`](flitdb/flit.h) in your project and compile with parameter `-lflitdb` to include the shared FlitDB library.
+
+### Compile into your project
+Instead of [installing the FlitDB library](#Install-as-library) on your system, you can also compile the FlitDB source directly into your project. This is very easy to accomplish, as all you need to do, is copy the contents of the [`flitdb`](flitdb) directory into your project, and make sure that you include the file [`flit.cpp`](flitdb/flit.cpp) in your project.
+
 ## Syntax 🗂️
-Take a look at the API syntax used to handler and manage a database connection through FlitDB. A thorough explanation of each function, and their return values, are all documented and can be viewed in the [FlitDB syntax manual](SYNTAX.md).
+Take a look at the API syntax used to handle and manage a database connection through FlitDB. A thorough explanation of each function, and their return values, are all documented and can be viewed in the [FlitDB syntax manual](SYNTAX.md).
 
 ## Demo 🛠️
 For a demo of FlitDB in action, take a look at this [example program](demo) for more...
