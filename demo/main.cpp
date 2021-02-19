@@ -2,7 +2,7 @@
 #ifndef FLITDB_LIB_DEMO
 #include "flit.cpp"
 #else
-#include "flit.h"
+#include <flit.h>
 #endif
 
 int main()
@@ -28,7 +28,6 @@ int main()
 			return 1;
 		}
 	}
-
 	switch (flitdb_extract(flit, 1, 1))
 	{
 	case FLITDB_DONE:

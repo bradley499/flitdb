@@ -1,8 +1,8 @@
 GCC=g++
 SRCDIR=../flitdb
-ARGS=-Wall
-BASE_HEADER=flit.h flit_version.h
-FILES:=flit.cpp $(BASE_HEADER) flit_handler.cpp flit_handler.h misc.cpp misc.h 
+ARGS=-Wall -g -ggdb
+BASE_HEADER=
+FILES:=flit.cpp flit.h flit_version.h flit_handler.cpp flit_handler.h misc.cpp misc.h 
 
 
 .PHONY: build
@@ -14,7 +14,6 @@ setup:
 
 setup_lib:
 	@mkdir -pv build
-	@cp -rnv $(BASE_HEADER:%=$(SRCDIR)/%) .
 
 build:
 	@echo -n "Compiling... "
@@ -33,4 +32,4 @@ run:
 	@cd build; ./demo
 
 clean:
-	@rm -rfv build/demo build/demo.db build $(FILES)
+	@rm -rfv build $(FILES)
