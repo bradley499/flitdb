@@ -1,10 +1,16 @@
 #ifndef flit_handler_cpp
 #define flit_handler_cpp
-#include <sys/file.h>
 #include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <iostream>
+#include <unistd.h>
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#warning "File locking is not supported on Windows builds"
+#define truncate _chsize
+#include <io.h>
+#else
+#define truncate ftruncate
+#include <sys/file.h>
+#endif
 #include "flit_handler.h"
 #include "flit.cpp"
 #include "misc.cpp"
@@ -15,11 +21,11 @@ flitdb::flitdb()
 	size = 0;
 	read_only = false;
 	if (max_buffer_size < 50)
-		err_message = (char*)"The minimum buffer size has encroached beyond suitable definitions\0";
+		err_message = (char *)"The minimum buffer size has encroached beyond suitable definitions\0";
 	else if (max_buffer_size > 1024)
-		err_message = (char*)"The maximum buffer size has encroached beyond suitable definitions\0";
+		err_message = (char *)"The maximum buffer size has encroached beyond suitable definitions\0";
 	else
-		err_message = (char*)"";
+		err_message = (char *)"";
 	clear_values();
 }
 
@@ -28,8 +34,10 @@ flitdb::~flitdb()
 	if (configured)
 	{
 		configured = false;
-		flock(file_descriptor, LOCK_UN);
-		close(file_descriptor);
+		#if not (defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__))
+		flock(fileno(file_descriptor), LOCK_UN);
+		#endif
+		fclose(file_descriptor);
 	}
 }
 
@@ -39,7 +47,7 @@ constexpr unsigned long long flitdb::max_size()
 	return ((insertion_area[0] * 10000) + insertion_area[1] + (column_position_max * 15));
 }
 
-unsigned short flitdb::to_short(char* chars)
+unsigned short flitdb::to_short(char *chars)
 {
 	unsigned short i = 0;
 	for (i = 0; i < strlen(chars); i++)
@@ -67,7 +75,7 @@ unsigned short flitdb::to_short(char* chars)
 	return short_value;
 }
 
-signed long long flitdb::to_long_long(char* chars)
+signed long long flitdb::to_long_long(char *chars)
 {
 	unsigned short i = 0;
 	bool negative = false;
@@ -101,10 +109,10 @@ signed long long flitdb::to_long_long(char* chars)
 	signed long long long_long_value = 0;
 	for (unsigned short ii = 0; ii < i; ++ii)
 		long_long_value = long_long_value * 10 + chars[ii] - '0';
-	return (((negative) ? -1 : 1 ) * long_long_value);
+	return (((negative) ? -1 : 1) * long_long_value);
 }
 
-double flitdb::to_double(char* chars)
+double flitdb::to_double(char *chars)
 {
 	unsigned short i = 0;
 	signed short decimalized = -1;
@@ -164,7 +172,7 @@ double flitdb::to_double(char* chars)
 	return double_value;
 }
 
-float flitdb::to_float(char* chars)
+float flitdb::to_float(char *chars)
 {
 	return (float)to_double(chars);
 }
@@ -194,28 +202,41 @@ int flitdb::setup(const char *filename, int flags, int version)
 		err_message = (char *)"The version of the FlitDB database handler is not supported by the API version used\0";
 		return FLITDB_ERROR;
 	}
+	size = 0;
+	if ((flags & FLITDB_READONLY) == FLITDB_READONLY)
+		read_only = true;
+	bool file_exists = true;
 	struct stat buffer;
 	if (stat(filename, &buffer) != 0)
 	{
+		file_exists = false;
 		if ((flags & FLITDB_CREATE) != FLITDB_CREATE)
 			return FLITDB_NOT_FOUND;
+		if (read_only)
+		{
+			err_message = (char *)"No database exists to be exclusively read\0";
+			return FLITDB_ERROR;
+		}
 	}
-	if ((flags & FLITDB_READONLY) == FLITDB_READONLY)
-		read_only = true;
-	file_descriptor = open(filename, (((flags & FLITDB_READONLY) == FLITDB_READONLY) ? (((flags & FLITDB_CREATE) == FLITDB_CREATE) ? (O_CREAT | O_RDONLY) : O_RDONLY) : (((flags & FLITDB_CREATE) == FLITDB_CREATE) ? (O_CREAT | O_RDWR): O_RDWR)), 0666);
-	if (file_descriptor == -1)
+	file_descriptor = fopen(filename, (((flags & FLITDB_READONLY) == FLITDB_READONLY) ? "r" : ((((flags & FLITDB_CREATE) == FLITDB_CREATE) && !file_exists) ? "w+" : "r+")));
+	if (file_descriptor == NULL)
 	{
 		err_message = (char *)"Failed to open the database\0";
 		return FLITDB_PERM;
 	}
-	if (flock(file_descriptor, LOCK_EX | LOCK_NB) != 0)
+	else
+	{
+		fseek(file_descriptor, 0L, SEEK_END);
+		size = ftell(file_descriptor);
+		fseek(file_descriptor, 0L, SEEK_SET);
+	}
+	#if not (defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__))
+	if (flock(fileno(file_descriptor), LOCK_EX | LOCK_NB) != 0)
 	{
 		err_message = (char *)"Exclusive rights to access the database could not be obtained\0";
 		return FLITDB_BUSY;
 	}
-	struct stat stat_buf;
-	int rc = fstat(file_descriptor, &stat_buf);
-	size = ((rc == 0) ? stat_buf.st_size : 0);
+	#endif
 	if (size > max_size())
 	{
 		err_message = (char *)"The database attempted to access has a larger size than what this object can read\0";
@@ -225,7 +246,7 @@ int flitdb::setup(const char *filename, int flags, int version)
 	return FLITDB_SUCCESS;
 }
 
-char* flitdb::get_err_message()
+char *flitdb::get_err_message()
 {
 	return err_message;
 }
@@ -240,7 +261,7 @@ int flitdb::insert_value(signed long long int set_value)
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
-		return FLITDB_READONLY;	
+		return FLITDB_READONLY;
 	}
 	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
@@ -263,7 +284,7 @@ int flitdb::insert_value(long double set_value)
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
-		return FLITDB_READONLY;	
+		return FLITDB_READONLY;
 	}
 	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
@@ -286,7 +307,7 @@ int flitdb::insert_value(float set_value)
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
-		return FLITDB_READONLY;	
+		return FLITDB_READONLY;
 	}
 	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
@@ -309,7 +330,7 @@ int flitdb::insert_value(char *set_value)
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
-		return FLITDB_READONLY;	
+		return FLITDB_READONLY;
 	}
 	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
@@ -337,7 +358,7 @@ int flitdb::insert_value(bool set_value)
 	if (read_only)
 	{
 		err_message = (char *)"The database was opened in readonly mode";
-		return FLITDB_READONLY;	
+		return FLITDB_READONLY;
 	}
 	if (value_type != FLITDB_NULL && !value_retrieved)
 	{
@@ -408,21 +429,29 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 	unsigned short row_position_count = 0;
 	while (true)
 	{
+		if ((offset + read_length) >= size)
+		{
+			if ((offset + read_length) > (size + read_length))
+			{
+				err_message = (char *)"The database contracted a malformed structure declaration\0";
+				return FLITDB_CORRUPT;
+			}
+			else
+				break;
+		}
 		strncpy(buffer, "\0", sizeof(buffer));
-		ssize_t read_status = pread64(file_descriptor, &buffer, read_length, offset);
+		fseek(file_descriptor, offset, SEEK_SET);
 		offset += read_length;
-		if (read_status == -1)
+		if (fgets(buffer, (read_length + 1), file_descriptor) == NULL)
 		{
 			err_message = (char *)"An error occurred in attempting to read data from the database\0";
 			return FLITDB_ERROR;
 		}
-		else if (read_status < read_length && read_status > 0)
+		if (strlen(buffer) != read_length)
 		{
 			err_message = (char *)"The database contracted a malformed structure declaration\0";
 			return FLITDB_CORRUPT;
 		}
-		else if (read_status == 0)
-			break;
 		if (read_length == 15)
 		{
 			char skip_amount_read[5];
@@ -476,7 +505,7 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 		response_length_read[1] = buffer[(read_length < 15) ? 4 : 11];
 		response_length_read[2] = buffer[(read_length < 15) ? 5 : 12];
 		response_length_read[3] = buffer[(read_length < 15) ? 6 : 13];
-		unsigned short response_length = to_short(response_length_read) + 1;
+		unsigned short response_length = (to_short(response_length_read) + 1);
 		unsigned char data_type;
 		switch (buffer[(read_length < 15) ? 7 : 14])
 		{
@@ -496,8 +525,10 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 			data_type = FLITDB_BOOL;
 			break;
 		default:
+		{
 			err_message = (char *)"The database yielded an invalid datatype\0";
 			return FLITDB_CORRUPT;
+		}
 		}
 		if (response_length_read == 0)
 		{
@@ -511,12 +542,22 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 		}
 		if (store_response)
 		{
+			response_length++;
 			value_type = data_type;
 			value_retrieved = true;
-			char *response_value = new char[(response_length + 1)];
-			response_value[response_length] = '\0';
-			read_status = pread64(file_descriptor, response_value, response_length, offset);
-			if (read_status == -1)
+			char response_value[response_length];
+			char response_value_tmp[response_length];
+			strncpy(buffer, "\0", sizeof(buffer));
+			strncpy(response_value, "\0", sizeof(response_value));
+			strncpy(response_value_tmp, "\0", sizeof(response_value_tmp));
+			fseek(file_descriptor, offset, SEEK_SET);
+			if (fgets(response_value_tmp, response_length, file_descriptor) == NULL)
+			{
+				err_message = (char *)"Unable to allocate memory to retrieve value from the database\0";
+				return FLITDB_ERROR;
+			}
+			strncpy(response_value, response_value_tmp, sizeof(response_value));
+			if (strlen(response_value) == 0)
 			{
 				err_message = (char *)"An error occurred in attempting to read data from the database\0";
 				return FLITDB_ERROR;
@@ -541,7 +582,6 @@ int flitdb::read_at(unsigned short column_position, unsigned short row_position)
 			default:
 				break;
 			}
-			delete [] response_value;
 			return FLITDB_DONE;
 		}
 		read_length = set_read_length;
@@ -561,7 +601,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 	{
 		err_message = (char *)"The database was opened in readonly mode";
 		clear_values();
-		return FLITDB_READONLY;	
+		return FLITDB_READONLY;
 	}
 	if (column_position == 0 || column_position > column_position_max || row_position == 0 || row_position > row_position_max)
 	{
@@ -576,11 +616,11 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 	{
 	case FLITDB_INTEGER:
 	{
-		input_buffer = new char[64];
+		input_buffer = (char *)calloc(64,sizeof(char));
 		int ret = snprintf(input_buffer, 64, "%lld", value.int_value);
 		if (ret <= 0)
 		{
-			delete [] input_buffer;
+			free(input_buffer);
 			err_message = (char *)"Value encoding of type: int; has failed\0";
 			clear_values();
 			return FLITDB_RANGE;
@@ -590,11 +630,11 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 	}
 	case FLITDB_DOUBLE:
 	{
-		input_buffer = new char[96];
+		input_buffer = (char *)calloc(96,sizeof(char));
 		int ret = snprintf(input_buffer, 96, "%Lf", value.double_value);
 		if (ret <= 0)
 		{
-			delete [] input_buffer;
+			free(input_buffer);
 			err_message = (char *)"Value encoding of type: double; has failed\0";
 			clear_values();
 			return FLITDB_RANGE;
@@ -606,17 +646,17 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			else
 				break;
 		}
-		
+
 		input_size = strlen(input_buffer);
 		break;
 	}
 	case FLITDB_FLOAT:
 	{
-		input_buffer = new char[32];
+		input_buffer = (char *)calloc(32,sizeof(char));
 		int ret = snprintf(input_buffer, 32, "%f", value.float_value);
 		if (ret <= 0)
 		{
-			delete [] input_buffer;
+			free(input_buffer);
 			err_message = (char *)"Value encoding of type: float; has failed\0";
 			clear_values();
 			return FLITDB_RANGE;
@@ -627,21 +667,21 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 				input_buffer[i] = '\0';
 			else
 				break;
-		}	
+		}
 		input_size = strlen(input_buffer);
 		break;
 	}
 	case FLITDB_CHAR:
 	{
 		input_size = strlen(value.char_value);
-		input_buffer = new char[input_size + 1];
+		input_buffer =  (char *)calloc((input_size + 1),sizeof(char));
 		input_buffer[input_size] = '\0';
 		strncpy(input_buffer, value.char_value, input_size);
 		break;
 	}
 	case FLITDB_BOOL:
 	{
-		input_buffer = new char[1];
+		input_buffer = (char *)calloc(1,sizeof(char));
 		if (value.bool_value)
 			input_buffer[0] = '1';
 		else
@@ -662,7 +702,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		int ret = snprintf(size_buffer, sizeof(size_buffer), "%d", (int)input_size);
 		if (ret <= 0)
 		{
-			delete [] input_buffer;
+			free(input_buffer);
 			err_message = (char *)"Length determination failed\0";
 			clear_values();
 			return FLITDB_ERROR;
@@ -702,24 +742,20 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 	{
 		current_length = 0;
 		strncpy(buffer, "\0", sizeof(buffer));
-		ssize_t read_status = pread64(file_descriptor, &buffer, read_length[0], offset[0]);
+		fseek(file_descriptor, offset[0], SEEK_SET);
 		offset[0] += read_length[0];
 		offset[1] = offset[0];
-		if (read_status == -1)
+		if (fgets(buffer, (read_length[0] + 1), file_descriptor) == NULL)
 		{
-			delete [] input_buffer;
-			err_message = (char *)"An error occurred in attempting to read data from the database\0";
-			clear_values();
-			return FLITDB_ERROR;
+			if (offset[0] < size)
+			{
+				err_message = (char *)"An error occurred in attempting to read data from the database\0";
+				return FLITDB_ERROR;
+			}
+			else if (offset[0] == size)
+				break;
 		}
-		else if (read_status < read_length[0] && read_status > 0)
-		{
-			delete [] input_buffer;
-			err_message = (char *)"The database contracted a malformed structure declaration\0";
-			clear_values();
-			return FLITDB_CORRUPT;
-		}
-		else if (read_status == 0)
+		if (strlen(buffer) == 0)
 		{
 			current_length = 0;
 			if (skip_offset[0] < column_position)
@@ -737,6 +773,11 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			read_length[0] = read_length[1];
 			break;
 		}
+		else if (strlen(buffer) != read_length[0])
+		{
+			err_message = (char *)"The database contracted a malformed structure declaration\0";
+			return FLITDB_CORRUPT;
+		}
 		bool segment_detection = false;
 		insertion_state[1] = insertion_state[0];
 		if (read_length[0] == 15)
@@ -752,7 +793,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			signed short skip_amount = to_short(skip_amount_read);
 			if (skip_amount < 0)
 			{
-				delete [] input_buffer;
+				free(input_buffer);
 				err_message = (char *)"Skip offset negation detected\0";
 				clear_values();
 				return FLITDB_CORRUPT;
@@ -768,7 +809,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			row_count[1] = (row_count[0] + 1);
 			if (row_count[0] < 0)
 			{
-				delete [] input_buffer;
+				free(input_buffer);
 				err_message = (char *)"Row count negation detected\0";
 				clear_values();
 				return FLITDB_CORRUPT;
@@ -796,7 +837,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		signed short position = to_short(position_read);
 		if (position < 0)
 		{
-			delete [] input_buffer;
+			free(input_buffer);
 			err_message = (char *)"Position offset negation detected\0";
 			clear_values();
 			return FLITDB_CORRUPT;
@@ -810,7 +851,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		current_length = to_short(response_length_read);
 		if (current_length <= 0)
 		{
-			delete [] input_buffer;
+			free(input_buffer);
 			err_message = (char *)"Length notation negation detected\0";
 			clear_values();
 			return FLITDB_CORRUPT;
@@ -890,7 +931,7 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 		offset[1] -= 1;
 		if (input_size == 0)
 		{
-			delete [] input_buffer;
+			free(input_buffer);
 			clear_values();
 			return FLITDB_DONE;
 		}
@@ -912,8 +953,18 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 				buffer_offset += buffer_size;
 				unsigned long reference_position = (size - buffer_offset);
 				strncpy(buffer, "\0", sizeof(buffer));
-				pread64(file_descriptor, buffer, buffer_size, reference_position);
-				pwrite64(file_descriptor, buffer, buffer_size, (reference_position + offset_sizing));
+				fseek(file_descriptor, reference_position, SEEK_SET);
+				if (fgets(buffer, (buffer_size + 1), file_descriptor) == NULL)
+				{
+					err_message = (char *)"An error occurred in attempting to read data from the database\0";
+					return FLITDB_ERROR;
+				}
+				fseek(file_descriptor, (reference_position + offset_sizing), SEEK_SET);
+				if (fputs(buffer, file_descriptor) == -1)
+				{
+					err_message = (char *)"An error occurred in attempting to write data from the database\0";
+					return FLITDB_ERROR;
+				}
 			}
 		}
 		info_skip_offset.size = (column_position - skip_offset[0] - 1);
@@ -994,8 +1045,18 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 					writable = false;
 				}
 				strncpy(buffer, "\0", sizeof(buffer));
-				pread64(file_descriptor, buffer, buffer_size, buffer_offset);
-				pwrite64(file_descriptor, buffer, buffer_size, (buffer_offset - offset_sizing));
+				fseek(file_descriptor, buffer_offset, SEEK_SET);
+				if (fgets(buffer, (buffer_size + 1), file_descriptor) == NULL)
+				{
+					err_message = (char *)"An error occurred in attempting to read data from the database\0";
+					return FLITDB_ERROR;
+				}
+				fseek(file_descriptor, (buffer_offset - offset_sizing), SEEK_SET);
+				if (fputs(buffer, file_descriptor) == -1)
+				{
+					err_message = (char *)"An error occurred in attempting to write data from the database\0";
+					return FLITDB_ERROR;
+				}
 				buffer_offset += buffer_size;
 			}
 			if (!deleted_column[0] && !deleted_column[1])
@@ -1013,9 +1074,9 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			size -= offset_sizing;
 			if (size == offset[1])
 				update_override_cancel = 4;
-			if (ftruncate(file_descriptor, size) != 0)
+			if (truncate(fileno(file_descriptor), size) != 0)
 			{
-				delete [] input_buffer;
+				free(input_buffer);
 				clear_values();
 				err_message = (char *)"Failed database truncation occurred\0";
 				return FLITDB_CORRUPT;
@@ -1045,8 +1106,18 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 				buffer_offset += buffer_size;
 				unsigned long reference_position = (size - buffer_offset);
 				strncpy(buffer, "\0", sizeof(buffer));
-				pread64(file_descriptor, buffer, buffer_size, reference_position);
-				pwrite64(file_descriptor, buffer, buffer_size, (reference_position + offset_sizing));
+				fseek(file_descriptor, reference_position, SEEK_SET);
+				if (fgets(buffer, (buffer_size + 1), file_descriptor) == NULL)
+				{
+					err_message = (char *)"An error occurred in attempting to read data from the database\0";
+					return FLITDB_ERROR;
+				}
+				fseek(file_descriptor, (reference_position + offset_sizing), SEEK_SET);
+				if (fputs(buffer, file_descriptor) == -1)
+				{
+					err_message = (char *)"An error occurred in attempting to write data from the database\0";
+					return FLITDB_ERROR;
+				}
 			}
 			if (current_length > 0)
 			{
@@ -1105,7 +1176,12 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			skip_offset_buffer[1] = skip_offset_buffer[0];
 			skip_offset_buffer[0] = '0';
 		}
-		pwrite64(file_descriptor, skip_offset_buffer, 4, info_skip_offset.position);
+		fseek(file_descriptor, info_skip_offset.position, SEEK_SET);
+		if (fputs(skip_offset_buffer, file_descriptor) == -1)
+		{
+			err_message = (char *)"An error occurred in attempting to write data from the database\0";
+			return FLITDB_ERROR;
+		}
 	}
 	if (info_row_count.use)
 	{
@@ -1124,7 +1200,12 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			row_buffer[1] = row_buffer[0];
 			row_buffer[0] = '0';
 		}
-		pwrite64(file_descriptor, row_buffer, 3, info_row_count.position);
+		fseek(file_descriptor, info_row_count.position, SEEK_SET);
+		if (fputs(row_buffer, file_descriptor) == -1)
+		{
+			err_message = (char *)"An error occurred in attempting to write data from the database\0";
+			return FLITDB_ERROR;
+		}
 	}
 	if (info_row_position.use)
 	{
@@ -1143,7 +1224,12 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			position_buffer[1] = position_buffer[0];
 			position_buffer[0] = '0';
 		}
-		pwrite64(file_descriptor, position_buffer, 3, info_row_position.position);
+		fseek(file_descriptor, info_row_position.position, SEEK_SET);
+		if (fputs(position_buffer, file_descriptor) == -1)
+		{
+			err_message = (char *)"An error occurred in attempting to write data from the database\0";
+			return FLITDB_ERROR;
+		}
 	}
 	if (info_input_size.use)
 	{
@@ -1171,38 +1257,56 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			input_length_buffer[1] = input_length_buffer[0];
 			input_length_buffer[0] = '0';
 		}
-		pwrite64(file_descriptor, input_length_buffer, 4, info_input_size.position);
+		fseek(file_descriptor, info_input_size.position, SEEK_SET);
+		if (fputs(input_length_buffer, file_descriptor) == -1)
+		{
+			err_message = (char *)"An error occurred in attempting to write data from the database\0";
+			return FLITDB_ERROR;
+		}
 	}
 	if (info_input_type.use)
 	{
+		fseek(file_descriptor, info_input_type.position, SEEK_SET);
 		switch (info_input_type.size)
 		{
 			case FLITDB_INTEGER:
-				pwrite64(file_descriptor, "1", 1, info_input_type.position);
+				fputs("1", file_descriptor);
 				break;
 			case FLITDB_DOUBLE:
-				pwrite64(file_descriptor, "2", 1, info_input_type.position);
+				fputs("2", file_descriptor);
 				break;
 			case FLITDB_FLOAT:
-				pwrite64(file_descriptor, "3", 1, info_input_type.position);
+				fputs("3", file_descriptor);
 				break;
 			case FLITDB_CHAR:
-				pwrite64(file_descriptor, "4", 1, info_input_type.position);
+				fputs("4", file_descriptor);
 				break;
 			case FLITDB_BOOL:
-				pwrite64(file_descriptor, "5", 1, info_input_type.position);
+				fputs("5", file_descriptor);
 				break;
 		}
 	}
 	if (info_input_buffer.use)
-		pwrite64(file_descriptor, input_buffer, info_input_buffer.size, info_input_buffer.position);
+	{
+		fseek(file_descriptor, info_input_buffer.position, SEEK_SET);
+		if (fputs(input_buffer, file_descriptor) == -1)
+		{
+			err_message = (char *)"An error occurred in attempting to write data from the database\0";
+			return FLITDB_ERROR;
+		}
+	}
 	if (value_type != FLITDB_NULL)
-		delete [] input_buffer;
+		free(input_buffer);
 	if ((update_next > 0 && (update_next < size || update_override_cancel == 0) && update_override_cancel != 2 && update_next != size) || update_override_cancel == 3)
 	{
 		// Update skip amount for the next data group along after request.
 		strncpy(buffer, "\0", sizeof(buffer));
-		pread64(file_descriptor, buffer, 4, update_next);
+		fseek(file_descriptor, update_next, SEEK_SET);
+		if (fgets(buffer, 5, file_descriptor) == NULL)
+		{
+			err_message = (char *)"An error occurred in attempting to read data from the database\0";
+			return FLITDB_ERROR;
+		}
 		unsigned short skip_amount_reducer = to_short(buffer);
 		if (skip_amount_reducer == 0 && !deleted_column[0])
 		{
@@ -1238,7 +1342,12 @@ int flitdb::insert_at(unsigned short column_position, unsigned short row_positio
 			skip_offset_buffer[1] = skip_offset_buffer[0];
 			skip_offset_buffer[0] = '0';
 		}
-		pwrite64(file_descriptor, skip_offset_buffer, 4, update_next);
+		fseek(file_descriptor, update_next, SEEK_SET);
+		if (fputs(skip_offset_buffer, file_descriptor) == -1)
+		{
+			err_message = (char *)"An error occurred in attempting to write data from the database\0";
+			return FLITDB_ERROR;
+		}
 	}
 	clear_values();
 	return FLITDB_DONE;

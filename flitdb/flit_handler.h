@@ -13,8 +13,8 @@ private:
 	const static unsigned int row_position_max = 1000;
 	char buffer[max_buffer_size];
 	bool configured = false;
-	int file_descriptor;
-	char* err_message;
+	FILE *file_descriptor;
+	char *err_message;
 	struct value
 	{
 		signed long long int int_value;
@@ -29,34 +29,34 @@ private:
 	bool read_only;
 	void clear_values();
 	constexpr unsigned long long max_size();
-	unsigned short to_short(char* chars);
-	signed long long to_long_long(char* chars);
-	double to_double(char* chars);
-	float to_float(char* chars);
-	char* to_char_array(double number);
+	unsigned short to_short(char *chars);
+	signed long long to_long_long(char *chars);
+	double to_double(char *chars);
+	float to_float(char *chars);
+	char *to_char_array(double number);
 	const int flitdb_version = FLITDB_VERSION;
+
 public:
 	flitdb();
 	~flitdb();
 	int setup(const char *filename, int flags, int version);
-	char* get_err_message();
+	char *get_err_message();
 	int read_at(unsigned short column_position, unsigned short row_position);
 	int insert_at(unsigned short column_position, unsigned short row_position);
 	int insert_value(signed long long set_value);
 	int insert_value(long double set_value);
 	int insert_value(float set_value);
-	int insert_value(char* set_value);
+	int insert_value(char *set_value);
 	int insert_value(bool set_value);
 	int insert_reset();
 	signed long long int retrieve_value_int();
 	long double retrieve_value_double();
 	float retrieve_value_float();
-	char* retrieve_value_char();
+	char *retrieve_value_char();
 	bool retrieve_value_bool();
 	int retrieve_value_type();
 };
 
 #include "flit.h"
-
 
 #endif
