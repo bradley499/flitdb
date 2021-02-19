@@ -9,12 +9,9 @@ You might think that this would lead to your data being: lost, mangled, or a pai
 
 Instructions are good, but are even better, when they can be utilized in the construction of a database; FlitDB uses instructions embedded into the actual database file, to aid with the reading, and writing of data on itself. The database does not include any `null` (or empty) values; this done to lower the total size of the database file. With a smaller file size the data can be read in a fast and timely manor.
 
-## System support 🖥️
-This is currently only tested on a Linux system; but support for other platforms is planned.
-
 ## How to use 🖇️
 ### Install as library
-To install FlitDB as a shared library, simply navigate to the [`flitdb`](flitdb) directory and run the command `make`; this command will compile FlitDB into a shared library, and install it into the `/usr/lib` directory. Then to access the library, all you need to do is include the file [`flitdb/flit.h`](flitdb/flit.h) in your project and compile with parameter `-lflitdb` to include the shared FlitDB library.
+To install FlitDB as a shared library, simply navigate to the [`flitdb`](flitdb) directory and run the command `make`; this command will compile FlitDB into a shared library, and install it into the `/usr/lib` directory, along with required header files into the `/usr/include` directory. Then to access the library, all you need to do is `#include <`[`flit.h`](flitdb/flit.h)`>` into your project. To compile, all you need to do, is make sure that you compile with the parameter `-lflitdb` to include the shared FlitDB library.
 
 ### Compile into your project
 Instead of [installing the FlitDB library](#Install-as-library) on your system, you can also compile the FlitDB source directly into your project. This is very easy to accomplish, as all you need to do, is copy the contents of the [`flitdb`](flitdb) directory into your project, and make sure that you include the file [`flit.cpp`](flitdb/flit.cpp) in your project.
