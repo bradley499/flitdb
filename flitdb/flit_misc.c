@@ -3,6 +3,7 @@
 #define misc_c
 
 #include "flit_misc.h"
+#include <stdbool.h>
 
 unsigned int strcmp(const char *word1, const char *word2)
 {

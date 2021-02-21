@@ -15,9 +15,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "flit_handler.h"
-#include "flit.c"
 #include "flit.h"
-#include "flit_misc.c"
+#include "flit_misc.h"
 
 typedef struct flitdb
 {
