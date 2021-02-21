@@ -2,18 +2,24 @@
 ## Syntax
 | API | Parameter | Parameter | Parameter | Parameter | API Version |
 |-|-|-|-|-|-|
-|[`flitdb_setup`](#flitdb_setup)|`filename`|[`handler`](#handler)|`flags`||2baf|
-|[`flitdb_close`](#flitdb_close)|[`handler`](#handler)||||2baf|
-|[`flitdb_errmsg`](#flitdb_errmsg)|[`handler`](#handler)||||2baf|
-|[`flitdb_extract`](#flitdb_extract)|[`handler`](#handler)|`column_position`|`row_position`||2baf|
-|[`flitdb_retrieved_type`](#flitdb_retrieved_type)|[`handler`](#handler)||||2baf|
-|[`flitdb_insert`](#flitdb_insert)|[`handler`](#handler)|`column_position`|`row_position`|`value`|2baf|
-|[`flitdb_delete`](#flitdb_delete)|[`handler`](#handler)|`column_position`|`row_position`||2baf|
-|[`flitdb_retrieve_int`](#flitdb_retrieve_int)|[`handler`](#handler)||||2baf|
-|[`flitdb_retrieve_double`](#flitdb_retrieve_double)|[`handler`](#handler)||||2baf|
-|[`flitdb_retrieve_float`](#flitdb_retrieve_float)|[`handler`](#handler)||||2baf|
-|[`flitdb_retrieve_char`](#flitdb_retrieve_char)|[`handler`](#handler)||||2baf|
-|[`flitdb_retrieve_bool`](#flitdb_retrieve_bool)|[`handler`](#handler)||||2baf|
+|[`flitdb_setup`](#flitdb_setup)|`filename`|[`&handler`](#handler)|`flags`||52d9|
+|[`flitdb_close`](#flitdb_close)|[`&handler`](#handler)||||52d9|
+|[`flitdb_errmsg`](#flitdb_errmsg)|[`&handler`](#handler)||||52d9|
+|[`flitdb_extract`](#flitdb_extract)|[`&handler`](#handler)|`column_position`|`row_position`||52d9|
+|[`flitdb_retrieved_type`](#flitdb_retrieved_type)|[`&handler`](#handler)||||52d9|
+|[`flitdb_insert`](#flitdb_insert)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
+|[`flitdb_insert_int`](#flitdb_insert_int)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
+|[`flitdb_insert_double`](#flitdb_insert_double)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
+|[`flitdb_insert_float`](#flitdb_insert_float)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
+|[`flitdb_insert_char`](#flitdb_insert_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
+|[`flitdb_insert_const_char`](#flitdb_insert_const_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
+|[`flitdb_insert_bool`](#flitdb_insert_bool)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
+|[`flitdb_delete`](#flitdb_delete)|[`&handler`](#handler)|`column_position`|`row_position`||52d9|
+|[`flitdb_retrieve_int`](#flitdb_retrieve_int)|[`&handler`](#handler)||||52d9|
+|[`flitdb_retrieve_double`](#flitdb_retrieve_double)|[`&handler`](#handler)||||52d9|
+|[`flitdb_retrieve_float`](#flitdb_retrieve_float)|[`&handler`](#handler)||||52d9|
+|[`flitdb_retrieve_char`](#flitdb_retrieve_char)|[`&handler`](#handler)||||52d9|
+|[`flitdb_retrieve_bool`](#flitdb_retrieve_bool)|[`&handler`](#handler)||||52d9|
 ## APIs
 ### flitdb_setup
 Opens database through a FlitDB connection for operations. This **must** be done in order to use any subsequent FlitDB API, as the database must be accessible in order to perform any actions to it. The parameters used in conjunction with this API are as follows:
@@ -85,7 +91,9 @@ This function returns the following *Integer* values:
  - [FLITDB_BOOL](#value-types)
 
 ### flitdb_insert
-Attempts to write a `value` stored into the database - through a FlitDB connection - at the defined coordinates provided in the values: `column_position`, `row_position`.
+Attempts to write a `value` into the database - through a FlitDB connection - at the defined coordinates provided in the values: `column_position`, `row_position`.
+
+**NOTE:** This function is only supported when compiled as a **C++** program; see alternative insertion functions - below - for **C** programs.
 
 The parameters defined are as follows:
 
@@ -103,6 +111,132 @@ The parameters defined are as follows:
    - `char* `
    - `const char*`
    - `bool`
+
+This function returns the following *Integer* values:
+
+ - [FLITDB_ERROR](#operation-responses)
+ - [FLITDB_READONLY](#operation-responses)
+ - [FLITDB_RANGE](#operation-responses)
+ - [FLITDB_CORRUPT](#operation-responses)
+ - [FLITDB_DONE](#operation-responses)
+
+### flitdb_insert_int
+Attempts to write an integer `value` into the database - through a FlitDB connection - at the defined coordinates provided in the values: `column_position`, `row_position`.
+
+The parameters defined are as follows:
+
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned long int`.
+
+ - `handler` - See [Common Parameters](#common-parameters).
+
+ - `value` - The integer value that is to be stored within the database. Expected data type is `signed long long int`.
+
+This function returns the following *Integer* values:
+
+ - [FLITDB_ERROR](#operation-responses)
+ - [FLITDB_READONLY](#operation-responses)
+ - [FLITDB_RANGE](#operation-responses)
+ - [FLITDB_CORRUPT](#operation-responses)
+ - [FLITDB_DONE](#operation-responses)
+
+### flitdb_insert_double
+Attempts to write a double `value` into the database - through a FlitDB connection - at the defined coordinates provided in the values: `column_position`, `row_position`.
+
+The parameters defined are as follows:
+
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned long int`.
+
+ - `handler` - See [Common Parameters](#common-parameters).
+
+ - `value` - The double value that is to be stored within the database. Expected data type is `long double long long int`.
+
+This function returns the following *Integer* values:
+
+ - [FLITDB_ERROR](#operation-responses)
+ - [FLITDB_READONLY](#operation-responses)
+ - [FLITDB_RANGE](#operation-responses)
+ - [FLITDB_CORRUPT](#operation-responses)
+ - [FLITDB_DONE](#operation-responses)
+
+### flitdb_insert_float
+Attempts to write a float `value` into the database - through a FlitDB connection - at the defined coordinates provided in the values: `column_position`, `row_position`.
+
+The parameters defined are as follows:
+
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned long int`.
+
+ - `handler` - See [Common Parameters](#common-parameters).
+
+ - `value` - The float value that is to be stored within the database. Expected data type is `float`.
+
+This function returns the following *Integer* values:
+
+ - [FLITDB_ERROR](#operation-responses)
+ - [FLITDB_READONLY](#operation-responses)
+ - [FLITDB_RANGE](#operation-responses)
+ - [FLITDB_CORRUPT](#operation-responses)
+ - [FLITDB_DONE](#operation-responses)
+
+### flitdb_insert_char
+Attempts to write a *char pointer* (char \*) `value` into the database - through a FlitDB connection - at the defined coordinates provided in the values: `column_position`, `row_position`.
+
+The parameters defined are as follows:
+
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned long int`.
+
+ - `handler` - See [Common Parameters](#common-parameters).
+
+ - `value` - The *char pointer* (const char \*) value that is to be stored within the database. Expected data type is `char *`.
+
+This function returns the following *Integer* values:
+
+ - [FLITDB_ERROR](#operation-responses)
+ - [FLITDB_READONLY](#operation-responses)
+ - [FLITDB_RANGE](#operation-responses)
+ - [FLITDB_CORRUPT](#operation-responses)
+ - [FLITDB_DONE](#operation-responses)
+
+### flitdb_insert_const_char
+Attempts to write a *const char pointer* (char \*) `value` into the database - through a FlitDB connection - at the defined coordinates provided in the values: `column_position`, `row_position`.
+
+The parameters defined are as follows:
+
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned long int`.
+
+ - `handler` - See [Common Parameters](#common-parameters).
+
+ - `value` - The *const char pointer* (const char \*) value that is to be stored within the database. Expected data type is `const char *`.
+
+This function returns the following *Integer* values:
+
+ - [FLITDB_ERROR](#operation-responses)
+ - [FLITDB_READONLY](#operation-responses)
+ - [FLITDB_RANGE](#operation-responses)
+ - [FLITDB_CORRUPT](#operation-responses)
+ - [FLITDB_DONE](#operation-responses)
+
+### flitdb_insert_bool
+Attempts to write a boolean `value` into the database - through a FlitDB connection - at the defined coordinates provided in the values: `column_position`, `row_position`.
+
+The parameters defined are as follows:
+
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned long int`.
+
+ - `handler` - See [Common Parameters](#common-parameters).
+
+ - `value` - The boolean value that is to be stored within the database. Expected data type is `bool`.
 
 This function returns the following *Integer* values:
 
@@ -168,7 +302,7 @@ The parameter defined is as follows:
 This function returns a *char pointer* (char \*).
 
 ### flitdb_retrieve_bool
-Returns the bool value that was extracted using the [`flitdb_extract`](#flitdb_extract) function. If the datatype of the extracted value is not of [`FLITDB_BOOL`](#FLITDB_BOOL), the value will default to `false`.
+Returns the boolean value that was extracted using the [`flitdb_extract`](#flitdb_extract) function. If the datatype of the extracted value is not of [`FLITDB_BOOL`](#FLITDB_BOOL), the value will default to `false`.
 
 The parameter defined is as follows:
 
@@ -182,7 +316,9 @@ A handler is a FlitDB object, which is used to perform operations on the databas
 
 	flitdb *flit;
 
-With `flit` being any name that you wish, as it is a variable name. You do not need to declare the FlitDB object as being instantiated with any `new` (or similar) function, as that is handled all by the function [`flitdb_setup`](#flitdb_setup), allowing for a easy creation and deletion - when used with [`flitdb_close`](#flitdb_close).
+With `flit` being any name that you wish, as it is a variable name. You do not need to declare the FlitDB object as being initialized with any value, as that is handled all by the function [`flitdb_setup`](#flitdb_setup), allowing for a easy creation and deletion - when used with [`flitdb_close`](#flitdb_close).
+
+**NOTE:** The FlitDB object is expected to be passed by reference to all functions (example: `&flit`).
 
 ## FlitDB constants
 ### Access Flags
