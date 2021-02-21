@@ -3,7 +3,7 @@
 <p align="center"><i><b>Verb</b> ~ Move swiftly and lightly.</i></p>
 </center>
 
-FlitDB is a teeny tiny database - written in C++. Databases are part of our everyday lives; but one issue tends to arise with databases. *What is that?* Simply put, it is: **Redundancy**. With this in mind, FlitDB sets out to eliminate this by removing all unnecessary values from the data that you store.
+FlitDB is a teeny tiny database - written in C. Databases are part of our everyday lives; but one issue tends to arise with databases. *What is that?* Simply put, it is: **Redundancy**. With this in mind, FlitDB sets out to eliminate this by removing all unnecessary values from the data that you store.
 
 You might think that this would lead to your data being: lost, mangled, or a pain to read; but it doesn't have to be. FlitDB nixes the need for redundant nullified data, by introducing a variable skip amount between each value grouping; this allows FlitDB to have a broad scope of influence over thousands of different data points, whilst yielding a smaller file size, compared to other conventional database technologies.
 
