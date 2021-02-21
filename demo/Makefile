@@ -1,9 +1,7 @@
-GCC=g++
+GCC=gcc
 SRCDIR=../flitdb
 ARGS=-Wall -g -ggdb
-BASE_HEADER=
-FILES:=flit.cpp flit.h flit_version.h flit_handler.cpp flit_handler.h misc.cpp misc.h 
-
+FILES:=flit.c flit.h flit_version.h flit_handler.c flit_handler.h flit_misc.c flit_misc.h 
 
 .PHONY: build
 default: setup build
@@ -17,13 +15,13 @@ setup_lib:
 
 build:
 	@echo -n "Compiling... "
-	@$(GCC) $(ARGS) "./main.cpp" -o "./build/demo"
+	@$(GCC) $(ARGS) "./main.c" -o "./build/demo"
 	@echo "Done"
 
 build_lib:
 	@cd $(SRCDIR) && $(MAKE)
 	@echo -n "\nCompiling with shared library... "
-	@$(GCC) $(ARGS) -DFLITDB_LIB_DEMO "./main.cpp" -lflitdb -o "./build/demo"
+	@$(GCC) $(ARGS) -DFLITDB_LIB_DEMO "./main.c" -lflitdb -o "./build/demo"
 	@echo "Done"
 
 lib: setup_lib build_lib
