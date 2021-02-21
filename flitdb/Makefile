@@ -1,4 +1,4 @@
-GCC=g++
+GCC=gcc
 LIB=libflitdb.so
 LIB_HEADERS=flit.h flit_version.h
 OBJ=flitdb.o
