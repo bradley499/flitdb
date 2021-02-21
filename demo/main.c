@@ -1,6 +1,6 @@
 #include <stdio.h>
 #ifndef FLITDB_LIB_DEMO
-#include "flit.c"
+#include "flit.h"
 #else
 #include <flit.h>
 #endif
