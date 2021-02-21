@@ -14,7 +14,7 @@ Instructions are good, but are even better, when they can be utilized in the con
 To install FlitDB as a shared library, simply navigate to the [`flitdb`](flitdb) directory and run the command `make`; this command will compile FlitDB into a shared library, and install it into the `/usr/lib` directory, along with required header files into the `/usr/include` directory. Then to access the library, all you need to do is `#include <`[`flit.h`](flitdb/flit.h)`>` into your project. To compile, all you need to do, is make sure that you compile with the parameter `-lflitdb` to include the shared FlitDB library.
 
 ### Compile into your project
-Instead of [installing the FlitDB library](#Install-as-library) on your system, you can also compile the FlitDB source directly into your project. This is very easy to accomplish, as all you need to do, is copy the contents of the [`flitdb`](flitdb) directory into your project, and make sure that you include the file [`flit.c`](flitdb/flit.c) in your project.
+Instead of [installing the FlitDB library](#Install-as-library) on your system, you can also compile the FlitDB source directly into your project. This is very easy to accomplish, as all you need to do, is copy the contents of the [`flitdb`](flitdb) directory into your project, and make sure that you include the file `#include "`[`flit.h`](flitdb/flit.h)`"` in your project.
 
 ## Syntax 🗂️
 Take a look at the API syntax used to handle and manage a database connection through FlitDB. A thorough explanation of each function, and their return values, are all documented and can be viewed in the [FlitDB syntax manual](SYNTAX.md).
