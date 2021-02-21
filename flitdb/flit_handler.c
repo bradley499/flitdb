@@ -4,7 +4,7 @@
 #include <unistd.h>
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define __WINDOWS__
-#warning "File locking is not supported on Windows builds"
+#warning "File locking is currently not supported in Windows builds"
 #define truncate _chsize
 #include <io.h>
 #else
@@ -17,6 +17,14 @@
 #include "flit_handler.h"
 #include "flit.h"
 #include "flit_misc.h"
+
+#define flitdb_max_buffer_size 1024
+#define flitdb_max_char_length 10000
+#define flitdb_max_err_size 100
+
+const unsigned int flitdb_column_position_max = 10000;
+const unsigned int flitdb_row_position_max = 1000;
+const int flitdb_version = FLITDB_VERSION;
 
 typedef struct flitdb
 {
@@ -38,9 +46,23 @@ typedef struct flitdb
 	bool read_only;
 } flitdb;
 
-void flitdb_new(flitdb **handler)
+void flitdb_clear_values(flitdb **handler)
+{
+	(*handler)->value.int_value = 0;
+	(*handler)->value.double_value = 0;
+	(*handler)->value.float_value = 0;
+	(*handler)->value.bool_value = false;
+	strncpy((*handler)->value.char_value, "\0", sizeof((*handler)->value.char_value));
+	(*handler)->value_type = FLITDB_NULL;
+	(*handler)->value_retrieved = false;
+	strncpy((*handler)->buffer, "\0", sizeof((*handler)->buffer));
+}
+
+bool flitdb_new(flitdb **handler)
 {
 	*handler = &*(flitdb *)malloc(sizeof(flitdb));
+	if (*handler == NULL)
+		return false;
 	(*handler)->configured = (flitdb_max_buffer_size < 50 || flitdb_max_buffer_size > 1024);
 	(*handler)->size = 0;
 	(*handler)->read_only = false;
@@ -54,6 +76,7 @@ void flitdb_new(flitdb **handler)
 	else
 		strncpy((*handler)->err_message, "\0", flitdb_max_err_size);
 	flitdb_clear_values(handler);
+	return true;
 }
 
 void flitdb_destroy(flitdb **handler)
@@ -72,18 +95,6 @@ const unsigned long long flitdb_max_size()
 {
 	unsigned long long insertion_area[2] = {(flitdb_column_position_max * flitdb_row_position_max), (flitdb_row_position_max > 1 ? ((flitdb_column_position_max * (flitdb_row_position_max - 1)) * 8) : 0)};
 	return ((insertion_area[0] * 10000) + insertion_area[1] + (flitdb_column_position_max * 15));
-}
-
-void flitdb_clear_values(flitdb **handler)
-{
-	(*handler)->value.int_value = 0;
-	(*handler)->value.double_value = 0;
-	(*handler)->value.float_value = 0;
-	(*handler)->value.bool_value = false;
-	strncpy((*handler)->value.char_value, "\0", sizeof((*handler)->value.char_value));
-	(*handler)->value_type = FLITDB_NULL;
-	(*handler)->value_retrieved = false;
-	strncpy((*handler)->buffer, "\0", sizeof((*handler)->buffer));
 }
 
 int flitdb_connection_setup(flitdb **handler, const char *filename, int flags, int version)

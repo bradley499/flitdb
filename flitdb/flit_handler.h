@@ -2,21 +2,15 @@
 #define flit_handler_h
 
 #include "flit_version.h"
+#include "flit_handler.c"
 
 #define flitdb_object_configured
-#define flitdb_max_buffer_size 1024
-#define flitdb_max_char_length 10000
-#define flitdb_max_err_size 100
-
-const unsigned int flitdb_column_position_max = 10000;
-const unsigned int flitdb_row_position_max = 1000;
-const int flitdb_version = FLITDB_VERSION;
 
 typedef struct flitdb flitdb;
 
 const unsigned long long flitdb_max_size();
 
-void flitdb_new(flitdb **handler);
+bool flitdb_new(flitdb **handler);
 void flitdb_destroy(flitdb **handler);
 int flitdb_connection_setup(flitdb **handler, const char *filename, int flags, int version);
 char *flitdb_get_err_message(flitdb **handler);

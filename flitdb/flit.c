@@ -1,9 +1,11 @@
 #ifndef flit_c
 #define flit_c
 
-#include "flit_handler.c"
+#include <stdlib.h>
+#include <string.h>
+#include "flit_handler.h"
 #include "flit.h"
-#include "flit_misc.c"
+#include "flit_misc.h"
 
 #ifdef __cplusplus
 #define flitdb_extern extern "C"
@@ -13,7 +15,8 @@
 
 flitdb_extern int flitdb_setup(const char *filename, flitdb **handler, int flags)
 {
-	flitdb_new(handler);
+	if (!flitdb_new(handler))
+		return FLITDB_ERROR;
 	return flitdb_connection_setup(handler, filename, flags, flitdb_api_version);
 }
 
@@ -26,6 +29,8 @@ flitdb_extern int flitdb_close(flitdb **handler)
 
 flitdb_extern char *flitdb_errmsg(flitdb **handler)
 {
+	if (*handler == NULL)
+		return "This handler has not been setup\0";
 	return flitdb_get_err_message(handler);
 }
 
