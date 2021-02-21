@@ -1,12 +1,18 @@
 #ifndef flit_h
 #define flit_h
 #include "flit_version.h"
+#include <stdbool.h>
 
 typedef unsigned long uint64_t;
 
-#ifndef flitdb_class_configured
-class flitdb {};
-typedef flitdb flitdb;
+#ifdef __cplusplus
+#define flitdb_extern extern "C"
+#else
+#define flitdb_extern extern
+#endif
+
+#ifndef flitdb_object_configured
+typedef struct flitdb flitdb;
 #endif
 int flitdb_api_version = FLITDB_VERSION;
 
@@ -35,7 +41,7 @@ int flitdb_api_version = FLITDB_VERSION;
  * @param flags The read write operation flags to set on the database file
  * @return int 
  */
-int flitdb_setup(const char *filename, flitdb *&handler, int flags);
+flitdb_extern int flitdb_setup(const char *filename, flitdb **handler, int flags);
 
 /**
  * @brief Close the connection to the database, and delete the FlitDB handler object
@@ -43,7 +49,7 @@ int flitdb_setup(const char *filename, flitdb *&handler, int flags);
  * @param handler The FlitDB handler The FlitDB handler
  * @return int 
  */
-int flitdb_close(flitdb *&handler);
+flitdb_extern int flitdb_close(flitdb **handler);
 
 /**
  * @brief Retrieve an error message from the FlitDB handler if once exists
@@ -51,7 +57,7 @@ int flitdb_close(flitdb *&handler);
  * @param handler The FlitDB handler 
  * @return char* 
  */
-char* flitdb_errmsg(flitdb *handler);
+flitdb_extern char* flitdb_errmsg(flitdb **handler);
 
 /**
  * @brief Extract a value stored within the FlitDB handler
@@ -61,7 +67,7 @@ char* flitdb_errmsg(flitdb *handler);
  * @param row_position The row that you wish to extract the value from
  * @return int 
  */
-int flitdb_extract(flitdb *handler, uint64_t column_position, uint64_t row_position);
+flitdb_extern int flitdb_extract(flitdb **handler, uint64_t column_position, uint64_t row_position);
 
 /**
  * @brief Retrieve a numeric representation of what data type was retrieved:
@@ -75,7 +81,9 @@ int flitdb_extract(flitdb *handler, uint64_t column_position, uint64_t row_posit
  * @param handler 
  * @return int 
  */
-int flitdb_retrieved_type(flitdb *handler);
+flitdb_extern int flitdb_retrieved_type(flitdb **handler);
+
+#ifdef __cplusplus
 
 /**
  * @brief Insert an integer (signed long long int) into the FlitDB handler and store
@@ -86,7 +94,23 @@ int flitdb_retrieved_type(flitdb *handler);
  * @param value The value to insert
  * @return int 
  */
-int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_position, signed long long int value);
+int flitdb_insert(flitdb **handler, uint64_t column_position, uint64_t row_position, signed long long int value);
+
+#endif
+
+/**
+ * @brief Insert an integer (signed long long int) into the FlitDB handler and store
+ * 
+ * @param handler The FlitDB handler 
+ * @param column_position The column that you wish to insert the value into
+ * @param row_position The row that you wish to insert the value into
+ * @param value The value to insert
+ * @return int 
+ */
+
+flitdb_extern int flitdb_insert_int(flitdb **handler, uint64_t column_position, uint64_t row_position, signed long long int value);
+
+#ifdef __cplusplus
 
 /**
  * @brief Insert an double (long double) into the FlitDB handler and store
@@ -97,7 +121,22 @@ int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_positi
  * @param value The value to insert
  * @return int 
  */
-int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_position, long double value);
+int flitdb_insert(flitdb **handler, uint64_t column_position, uint64_t row_position, long double value);
+
+#endif
+
+/**
+ * @brief Insert an double (long double) into the FlitDB handler and store
+ * 
+ * @param handler The FlitDB handler 
+ * @param column_position The column that you wish to insert the value into
+ * @param row_position The row that you wish to insert the value into
+ * @param value The value to insert
+ * @return int 
+ */
+flitdb_extern int flitdb_insert_double(flitdb **handler, uint64_t column_position, uint64_t row_position, long double value);
+
+#ifdef __cplusplus
 
 /**
  * @brief Insert an float into the FlitDB handler and store
@@ -108,7 +147,22 @@ int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_positi
  * @param value The value to insert
  * @return int 
  */
-int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_position, float value);
+int flitdb_insert(flitdb **handler, uint64_t column_position, uint64_t row_position, float value);
+
+#endif
+
+/**
+ * @brief Insert an float into the FlitDB handler and store
+ * 
+ * @param handler The FlitDB handler 
+ * @param column_position The column that you wish to insert the value into
+ * @param row_position The row that you wish to insert the value into
+ * @param value The value to insert
+ * @return int 
+ */
+flitdb_extern int flitdb_insert_float(flitdb **handler, uint64_t column_position, uint64_t row_position, float value);
+
+#ifdef __cplusplus
 
 /**
  * @brief Insert an char* into the FlitDB handler and store
@@ -119,7 +173,22 @@ int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_positi
  * @param value The value to insert
  * @return int 
  */
-int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_position, char* value);
+int flitdb_insert(flitdb **handler, uint64_t column_position, uint64_t row_position, char* value);
+
+#endif
+
+/**
+ * @brief Insert an char* into the FlitDB handler and store
+ * 
+ * @param handler The FlitDB handler 
+ * @param column_position The column that you wish to insert the value into
+ * @param row_position The row that you wish to insert the value into
+ * @param value The value to insert
+ * @return int 
+ */
+flitdb_extern int flitdb_insert_char(flitdb **handler, uint64_t column_position, uint64_t row_position, char* value);
+
+#ifdef __cplusplus
 
 /**
  * @brief Insert an const char* into the FlitDB handler and store
@@ -130,7 +199,22 @@ int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_positi
  * @param value The value to insert
  * @return int 
  */
-int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_position, const char* value);
+int flitdb_insert(flitdb **handler, uint64_t column_position, uint64_t row_position, const char* value);
+
+#endif
+
+/**
+ * @brief Insert an const char* into the FlitDB handler and store
+ * 
+ * @param handler The FlitDB handler 
+ * @param column_position The column that you wish to insert the value into
+ * @param row_position The row that you wish to insert the value into
+ * @param value The value to insert
+ * @return int 
+ */
+flitdb_extern int flitdb_insert_const_char(flitdb **handler, uint64_t column_position, uint64_t row_position, const char* value);
+
+#ifdef __cplusplus
 
 /**
  * @brief Insert an boolean (bool) into the FlitDB handler and store
@@ -141,7 +225,20 @@ int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_positi
  * @param value The value to insert
  * @return int 
  */
-int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_position, bool value);
+int flitdb_insert(flitdb **handler, uint64_t column_position, uint64_t row_position, bool value);
+
+#endif
+
+/**
+ * @brief Insert an boolean (bool) into the FlitDB handler and store
+ * 
+ * @param handler The FlitDB handler 
+ * @param column_position The column that you wish to insert the value into
+ * @param row_position The row that you wish to insert the value into
+ * @param value The value to insert
+ * @return int 
+ */
+flitdb_extern int flitdb_insert_bool(flitdb **handler, uint64_t column_position, uint64_t row_position, bool value);
 
 /**
  * @brief Delete a value stored within the FlitDB handler
@@ -151,7 +248,7 @@ int flitdb_insert(flitdb *handler, uint64_t column_position, uint64_t row_positi
  * @param row_position The row that you wish to delete the value from
  * @return int 
  */
-int flitdb_delete(flitdb *handler, uint64_t column_position, uint64_t row_position);
+flitdb_extern int flitdb_delete(flitdb **handler, uint64_t column_position, uint64_t row_position);
 
 /**
  * @brief Retrieve an integer (signed long long int) from the extracted value from the FlitDB handler
@@ -159,7 +256,7 @@ int flitdb_delete(flitdb *handler, uint64_t column_position, uint64_t row_positi
  * @param handler The FlitDB handler 
  * @return signed long long int 
  */
-signed long long int flitdb_retrieve_int(flitdb *handler);
+flitdb_extern signed long long int flitdb_retrieve_int(flitdb **handler);
 
 /**
  * @brief Retrieve an double (long double) from the extracted value from the FlitDB handler
@@ -167,7 +264,7 @@ signed long long int flitdb_retrieve_int(flitdb *handler);
  * @param handler The FlitDB handler 
  * @return long double 
  */
-long double flitdb_retrieve_double(flitdb *handler);
+flitdb_extern long double flitdb_retrieve_double(flitdb **handler);
 
 /**
  * @brief Retrieve an float from the extracted value from the FlitDB handler
@@ -175,7 +272,7 @@ long double flitdb_retrieve_double(flitdb *handler);
  * @param handler The FlitDB handler 
  * @return float 
  */
-float flitdb_retrieve_float(flitdb *handler);
+flitdb_extern float flitdb_retrieve_float(flitdb **handler);
 
 /**
  * @brief Retrieve an char* from the extracted value from the FlitDB handler
@@ -183,7 +280,7 @@ float flitdb_retrieve_float(flitdb *handler);
  * @param handler The FlitDB handler 
  * @return char * 
  */
-char* flitdb_retrieve_char(flitdb *handler);
+flitdb_extern char* flitdb_retrieve_char(flitdb **handler);
 
 /**
  * @brief Retrieve an boolean (bool) from the extracted value from the FlitDB handler
@@ -191,5 +288,6 @@ char* flitdb_retrieve_char(flitdb *handler);
  * @param handler The FlitDB handler 
  * @return bool 
  */
-bool flitdb_retrieve_bool(flitdb *handler);
+flitdb_extern bool flitdb_retrieve_bool(flitdb **handler);
+
 #endif

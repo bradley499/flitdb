@@ -7,7 +7,7 @@ default: build update clean done
 
 build:
 	@echo -n "Generating object..."
-	@$(GCC) -fPIC -c flit_handler.cpp -o $(OBJ)
+	@$(GCC) -fPIC -c flit_handler.c -o $(OBJ)
 	@echo " done"
 	@echo -n "Generating shared library..."
 	@$(GCC) -s -shared -o $(LIB) $(OBJ)

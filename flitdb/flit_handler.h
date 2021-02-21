@@ -3,60 +3,37 @@
 
 #include "flit_version.h"
 
-#define flitdb_class_configured
+#define flitdb_object_configured
+#define flitdb_max_buffer_size 1024
+#define flitdb_max_char_length 10000
+#define flitdb_max_err_size 100
 
-class flitdb
-{
-private:
-	const static unsigned short max_buffer_size = 1024;
-	const static unsigned int column_position_max = 10000;
-	const static unsigned int row_position_max = 1000;
-	char buffer[max_buffer_size];
-	bool configured = false;
-	FILE *file_descriptor;
-	char *err_message;
-	struct value
-	{
-		signed long long int int_value;
-		long double double_value;
-		float float_value;
-		char char_value[10000];
-		bool bool_value;
-	} value;
-	unsigned char value_type;
-	bool value_retrieved = false;
-	size_t size;
-	bool read_only;
-	void clear_values();
-	constexpr unsigned long long max_size();
-	unsigned short to_short(char *chars);
-	signed long long to_long_long(char *chars);
-	double to_double(char *chars);
-	float to_float(char *chars);
-	char *to_char_array(double number);
-	const int flitdb_version = FLITDB_VERSION;
+const unsigned int flitdb_column_position_max = 10000;
+const unsigned int flitdb_row_position_max = 1000;
+const int flitdb_version = FLITDB_VERSION;
 
-public:
-	flitdb();
-	~flitdb();
-	int setup(const char *filename, int flags, int version);
-	char *get_err_message();
-	int read_at(unsigned short column_position, unsigned short row_position);
-	int insert_at(unsigned short column_position, unsigned short row_position);
-	int insert_value(signed long long set_value);
-	int insert_value(long double set_value);
-	int insert_value(float set_value);
-	int insert_value(char *set_value);
-	int insert_value(bool set_value);
-	int insert_reset();
-	signed long long int retrieve_value_int();
-	long double retrieve_value_double();
-	float retrieve_value_float();
-	char *retrieve_value_char();
-	bool retrieve_value_bool();
-	int retrieve_value_type();
-};
+typedef struct flitdb flitdb;
 
-#include "flit.h"
+const unsigned long long flitdb_max_size();
+
+void flitdb_new(flitdb **handler);
+void flitdb_destroy(flitdb **handler);
+int flitdb_connection_setup(flitdb **handler, const char *filename, int flags, int version);
+char *flitdb_get_err_message(flitdb **handler);
+int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned short row_position);
+void flitdb_clear_values(flitdb **handler);
+int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned short row_position);
+int flitdb_insert_value_int(flitdb **handler, signed long long set_value);
+int flitdb_insert_value_double(flitdb **handler, long double set_value);
+int flitdb_insert_value_float(flitdb **handler, float set_value);
+int flitdb_insert_value_char(flitdb **handler, char *set_value);
+int flitdb_insert_value_bool(flitdb **handler, bool set_value);
+int flitdb_insert_reset(flitdb **handler);
+signed long long int flitdb_retrieve_value_int(flitdb **handler);
+long double flitdb_retrieve_value_double(flitdb **handler);
+float flitdb_retrieve_value_float(flitdb **handler);
+char *flitdb_retrieve_value_char(flitdb **handler);
+bool flitdb_retrieve_value_bool(flitdb **handler);
+int flitdb_retrieve_value_type(flitdb **handler);
 
 #endif
