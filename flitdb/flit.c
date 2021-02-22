@@ -16,7 +16,10 @@
 flitdb_extern int flitdb_setup(const char *filename, flitdb **handler, int flags)
 {
 	if (!flitdb_new(handler))
+	{
+		*handler = NULL;
 		return FLITDB_ERROR;
+	}
 	return flitdb_connection_setup(handler, filename, flags);
 }
 
@@ -29,8 +32,6 @@ flitdb_extern int flitdb_close(flitdb **handler)
 
 flitdb_extern char *flitdb_errmsg(flitdb **handler)
 {
-	if (*handler == NULL)
-		return "This handler has not been setup\0";
 	return flitdb_get_err_message(handler);
 }
 

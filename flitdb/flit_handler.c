@@ -150,6 +150,8 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
 
 char *flitdb_get_err_message(flitdb **handler)
 {
+	if (*handler == NULL)
+		return "This handler failed to setup\0";
 	return (*handler)->err_message;
 }
 
@@ -512,7 +514,7 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 		return FLITDB_RANGE;
 	}
 	row_position -= 1;
-	char *input_buffer;
+	char *input_buffer = NULL;
 	unsigned short input_size = 0;
 	switch ((*handler)->value_type)
 	{
@@ -522,7 +524,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 		int ret = snprintf(input_buffer, 64, "%lld", (*handler)->value.int_value);
 		if (ret <= 0)
 		{
-			free(input_buffer);
+			if (input_buffer != NULL)
+				free(input_buffer);
 			strncpy((*handler)->err_message, "Value encoding of type: int; has failed\0", flitdb_max_err_size);
 			flitdb_clear_values(handler);
 			return FLITDB_RANGE;
@@ -536,7 +539,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 		int ret = snprintf(input_buffer, 96, "%Lf", (*handler)->value.double_value);
 		if (ret <= 0)
 		{
-			free(input_buffer);
+			if (input_buffer != NULL)
+				free(input_buffer);
 			strncpy((*handler)->err_message, "Value encoding of type: double; has failed\0", flitdb_max_err_size);
 			flitdb_clear_values(handler);
 			return FLITDB_RANGE;
@@ -558,7 +562,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 		int ret = snprintf(input_buffer, 32, "%f", (*handler)->value.float_value);
 		if (ret <= 0)
 		{
-			free(input_buffer);
+			if (input_buffer != NULL)
+				free(input_buffer);
 			strncpy((*handler)->err_message, "Value encoding of type: float; has failed\0", flitdb_max_err_size);
 			flitdb_clear_values(handler);
 			return FLITDB_RANGE;
@@ -604,7 +609,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 		int ret = snprintf(size_buffer, sizeof(size_buffer), "%d", (int)input_size);
 		if (ret <= 0)
 		{
-			free(input_buffer);
+			if (input_buffer != NULL)
+				free(input_buffer);
 			strncpy((*handler)->err_message, "Length determination failed\0", flitdb_max_err_size);
 			flitdb_clear_values(handler);
 			return FLITDB_ERROR;
@@ -695,7 +701,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 			signed short skip_amount = to_short(skip_amount_read);
 			if (skip_amount < 0)
 			{
-				free(input_buffer);
+				if (input_buffer != NULL)
+					free(input_buffer);
 				strncpy((*handler)->err_message, "Skip offset negation detected\0", flitdb_max_err_size);
 				flitdb_clear_values(handler);
 				return FLITDB_CORRUPT;
@@ -711,7 +718,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 			row_count[1] = (row_count[0] + 1);
 			if (row_count[0] < 0)
 			{
-				free(input_buffer);
+				if (input_buffer != NULL)
+					free(input_buffer);
 				strncpy((*handler)->err_message, "Row count negation detected\0", flitdb_max_err_size);
 				flitdb_clear_values(handler);
 				return FLITDB_CORRUPT;
@@ -739,7 +747,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 		signed short position = to_short(position_read);
 		if (position < 0)
 		{
-			free(input_buffer);
+			if (input_buffer != NULL)
+				free(input_buffer);
 			strncpy((*handler)->err_message, "Position offset negation detected\0", flitdb_max_err_size);
 			flitdb_clear_values(handler);
 			return FLITDB_CORRUPT;
@@ -753,7 +762,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 		current_length = to_short(response_length_read);
 		if (current_length <= 0)
 		{
-			free(input_buffer);
+			if (input_buffer != NULL)
+				free(input_buffer);
 			strncpy((*handler)->err_message, "Length notation negation detected\0", flitdb_max_err_size);
 			flitdb_clear_values(handler);
 			return FLITDB_CORRUPT;
@@ -851,7 +861,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 		offset[1] -= 1;
 		if (input_size == 0)
 		{
-			free(input_buffer);
+			if (input_buffer != NULL)
+				free(input_buffer);
 			flitdb_clear_values(handler);
 			return FLITDB_DONE;
 		}
@@ -996,7 +1007,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 				update_override_cancel = 4;
 			if (truncate(fileno((*handler)->file_descriptor), (*handler)->size) != 0)
 			{
-				free(input_buffer);
+				if (input_buffer != NULL)
+					free(input_buffer);
 				flitdb_clear_values(handler);
 				strncpy((*handler)->err_message, "Failed database truncation occurred\0", flitdb_max_err_size);
 				return FLITDB_CORRUPT;
@@ -1216,7 +1228,8 @@ int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned 
 		}
 	}
 	if ((*handler)->value_type != FLITDB_NULL)
-		free(input_buffer);
+		if (input_buffer != NULL)
+			free(input_buffer);
 	if ((update_next > 0 && (update_next < (*handler)->size || update_override_cancel == 0) && update_override_cancel != 2 && update_next != (*handler)->size) || update_override_cancel == 3)
 	{
 		// Update skip amount for the next data group along after request.
