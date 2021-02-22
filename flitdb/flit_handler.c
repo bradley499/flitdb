@@ -13,8 +13,8 @@
 #endif
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <stdlib.h>
-#include "flit_handler.h"
 #include "flit.h"
 #include "flit_misc.h"
 
@@ -24,7 +24,6 @@
 
 const unsigned int flitdb_column_position_max = 10000;
 const unsigned int flitdb_row_position_max = 1000;
-const int flitdb_version = FLITDB_VERSION;
 
 typedef struct flitdb
 {
@@ -97,17 +96,12 @@ const unsigned long long flitdb_max_size()
 	return ((insertion_area[0] * 10000) + insertion_area[1] + (flitdb_column_position_max * 15));
 }
 
-int flitdb_connection_setup(flitdb **handler, const char *filename, int flags, int version)
+int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
 {
 	if ((*handler)->configured)
 	{
 		if (flitdb_max_buffer_size >= 50 && flitdb_max_buffer_size <= 1024)
 			strncpy((*handler)->err_message, "The database handler has already been attributed to handle another database\0", flitdb_max_err_size);
-		return FLITDB_ERROR;
-	}
-	else if (flitdb_version != version)
-	{
-		strncpy((*handler)->err_message, "The version of the FlitDB database handler is not supported by the API version used\0", flitdb_max_err_size);
 		return FLITDB_ERROR;
 	}
 	(*handler)->size = 0;

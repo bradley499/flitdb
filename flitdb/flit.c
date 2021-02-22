@@ -17,7 +17,7 @@ flitdb_extern int flitdb_setup(const char *filename, flitdb **handler, int flags
 {
 	if (!flitdb_new(handler))
 		return FLITDB_ERROR;
-	return flitdb_connection_setup(handler, filename, flags, flitdb_api_version);
+	return flitdb_connection_setup(handler, filename, flags);
 }
 
 flitdb_extern int flitdb_close(flitdb **handler)

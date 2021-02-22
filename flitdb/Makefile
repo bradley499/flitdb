@@ -1,12 +1,13 @@
 GCC=gcc
 LIB=libflitdb.so
-OBJ=flitdb.o
+SRC:=flit.c flit_handler.c flit_misc.c
+OBJ=flit_handler.o flit.o flit_misc.o
 
 default: build update clean done
 
 build:
 	@echo -n "Generating object..."
-	@$(GCC) -fPIC -Dflit_lib_compile -c flit_handler.c -o $(OBJ)
+	@$(GCC) -fPIC -Dflit_lib_compile -c $(SRC)
 	@echo " done"
 	@echo -n "Generating shared library..."
 	@$(GCC) -s -shared -o $(LIB) $(OBJ)
@@ -15,7 +16,6 @@ build:
 update:
 	@sudo cp -v $(LIB) /usr/lib
 	@sudo cp -v flit.h /usr/include/flit.h
-	@sudo cp -v flit_version_lib.h /usr/include/flit_version.h
 
 clean:
 	@rm -rfv $(OBJ) $(LIB)

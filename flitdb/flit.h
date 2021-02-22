@@ -1,29 +1,25 @@
 #ifndef flit_h
 #define flit_h
 #include <stdbool.h>
-#include "flit_version.h"
 
-#define FLITDB_SUCCESS		0  // Successful operation
-#define FLITDB_ERROR		1  // Unsuccessful operation
-#define FLITDB_PERM			2  // Permission denied
-#define FLITDB_BUSY			3  // The database file is locked
-#define FLITDB_NOT_FOUND	4  // The database file is not found
-#define FLITDB_CORRUPT		5  // The database file is malformed
-#define FLITDB_RANGE		6  // The requested range is outside the range of the database
-#define FLITDB_DONE			7  // The operation was completed successfully
-#define FLITDB_NULL			8  // The operation resulted in a null lookup
-#define FLITDB_CREATE		9  // Create a database if not existent
-#define FLITDB_READONLY		10 // Only allow the reading of the database
-#define FLITDB_INTEGER		11 // The value type of integer
-#define FLITDB_DOUBLE		12 // The value type of double
-#define FLITDB_FLOAT		13 // The value type of float
-#define FLITDB_CHAR			14 // The value type of char
-#define FLITDB_BOOL			15 // The value type of bool
-int flitdb_api_version = FLITDB_VERSION;
+#define FLITDB_SUCCESS      0  // Successful operation
+#define FLITDB_ERROR        1  // Unsuccessful operation
+#define FLITDB_PERM         2  // Permission denied
+#define FLITDB_BUSY         3  // The database file is locked
+#define FLITDB_NOT_FOUND    4  // The database file is not found
+#define FLITDB_CORRUPT      5  // The database file is malformed
+#define FLITDB_RANGE        6  // The requested range is outside the range of the database
+#define FLITDB_DONE         7  // The operation was completed successfully
+#define FLITDB_NULL         8  // The operation resulted in a null lookup
+#define FLITDB_CREATE       9  // Create a database if not existent
+#define FLITDB_READONLY     10 // Only allow the reading of the database
+#define FLITDB_INTEGER      11 // The value type of integer
+#define FLITDB_DOUBLE       12 // The value type of double
+#define FLITDB_FLOAT        13 // The value type of float
+#define FLITDB_CHAR         14 // The value type of char
+#define FLITDB_BOOL         15 // The value type of bool
 
-#ifndef flitdb_lib
-#include "flit.c"
-#endif
+#define FLITDB_VERSION 0x52d9 // The current FlitDB version magic number
 
 #ifdef __cplusplus
 #define flitdb_extern extern "C"

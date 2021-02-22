@@ -1,8 +1,7 @@
 #ifndef flit_handler_h
 #define flit_handler_h
 
-#include "flit_version.h"
-#include "flit_handler.c"
+#include <stdbool.h>
 
 #define flitdb_object_configured
 
@@ -12,7 +11,7 @@ const unsigned long long flitdb_max_size();
 
 bool flitdb_new(flitdb **handler);
 void flitdb_destroy(flitdb **handler);
-int flitdb_connection_setup(flitdb **handler, const char *filename, int flags, int version);
+int flitdb_connection_setup(flitdb **handler, const char *filename, int flags);
 char *flitdb_get_err_message(flitdb **handler);
 int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned short row_position);
 void flitdb_clear_values(flitdb **handler);
