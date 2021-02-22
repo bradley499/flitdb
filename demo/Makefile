@@ -1,7 +1,11 @@
 GCC=gcc
 SRCDIR=../flitdb
 ARGS=-Wall -g -ggdb
-FILES:=flit.c flit.h flit_version.h flit_handler.c flit_handler.h flit_misc.c flit_misc.h 
+LIB_FILES=flit.h
+DEMO_FILES=main.c
+FILES:=flit.c $(LIB_FILES) flit_handler.c flit_handler.h flit_misc.c flit_misc.h 
+SRC:=flit.c flit_handler.c flit_misc.c $(DEMO_FILES)
+OBJ=flit_handler.o flit.o flit_misc.o $(DEMO_FILES:.c=.o)
 
 .PHONY: build
 default: setup build
@@ -12,16 +16,19 @@ setup:
 
 setup_lib:
 	@mkdir -pv build
+	@cp -rnv $(LIB_FILES:%=$(SRCDIR)/%) .
 
 build:
 	@echo -n "Compiling... "
-	@$(GCC) $(ARGS) "./main.c" -o "./build/demo"
+	@$(GCC) $(ARGS) -c $(SRC)
+	@$(GCC) -o "./build/demo" $(OBJ)
 	@echo "Done"
 
 build_lib:
 	@cd $(SRCDIR) && $(MAKE)
 	@echo -n "\nCompiling with shared library... "
-	@$(GCC) $(ARGS) -DFLITDB_LIB_DEMO "./main.c" -lflitdb -o "./build/demo"
+	@$(GCC) $(ARGS) -DFLITDB_LIB_DEMO -c $(DEMO_FILES)
+	@$(GCC) $(ARGS) $(DEMO_FILES:.c=.o) -lflitdb -o "./build/demo"
 	@echo "Done"
 
 lib: setup_lib build_lib
@@ -31,3 +38,4 @@ run:
 
 clean:
 	@rm -rfv build $(FILES)
+	@rm -rfv build $(OBJ)
