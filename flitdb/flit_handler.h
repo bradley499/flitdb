@@ -15,7 +15,7 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags);
 char *flitdb_get_err_message(flitdb **handler);
 int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned short row_position);
 void flitdb_clear_values(flitdb **handler);
-int flitdb_insert_at(flitdb **handler, unsigned short column_position, unsigned short row_position);
+int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, unsigned short row_position);
 int flitdb_insert_value_int(flitdb **handler, signed long long set_value);
 int flitdb_insert_value_double(flitdb **handler, long double set_value);
 int flitdb_insert_value_float(flitdb **handler, float set_value);
