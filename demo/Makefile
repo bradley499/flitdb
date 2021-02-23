@@ -16,7 +16,6 @@ setup:
 
 setup_lib:
 	@mkdir -pv build
-	@cp -rnv $(LIB_FILES:%=$(SRCDIR)/%) .
 
 build:
 	@echo -n "Compiling... "
