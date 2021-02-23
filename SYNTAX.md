@@ -326,6 +326,7 @@ With `flit` being any name that you wish, as it is a variable name. You do not n
 |-|-|
 |`FLITDB_CREATE`|Create a database if not existent.|
 |`FLITDB_READONLY`|Only allow the reading of the database.|
+|`FLITDB_UNSAFE`|Discard all safety protocols to allow for larger database.|
 ### Operation responses
 |Constant|Meaning|
 |-|-|
