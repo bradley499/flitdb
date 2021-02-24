@@ -126,7 +126,7 @@ int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsi
 
 flitdb_extern int flitdb_insert_bool(flitdb **handler, unsigned long long int column_position, unsigned short row_position, bool value)
 {
-	flitdb_insert_value_bool(handler, value);
+	flitdb_insert_value_bool(handler, (value == true));
 	return flitdb_insert_at(handler, column_position, row_position);
 }
 

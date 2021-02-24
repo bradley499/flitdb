@@ -351,7 +351,7 @@ int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned sh
 		strncpy((*handler)->buffer, "\0", sizeof((*handler)->buffer));
 		fseek((*handler)->file_descriptor, offset, SEEK_SET);
 		offset += read_length;
-		if (fgets((*handler)->buffer, (read_length + 1), (*handler)->file_descriptor) == NULL)
+		if (fread((*handler)->buffer, read_length, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 		{
 			strncpy((*handler)->err_message, "An error occurred in attempting to read data from the database\0", flitdb_max_err_size);
 			return FLITDB_ERROR;
@@ -456,11 +456,12 @@ int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned sh
 			(*handler)->value_retrieved = true;
 			char response_value[response_length];
 			char response_value_tmp[response_length];
+			response_length--;
 			strncpy((*handler)->buffer, "\0", sizeof((*handler)->buffer));
 			strncpy(response_value, "\0", sizeof(response_value));
 			strncpy(response_value_tmp, "\0", sizeof(response_value_tmp));
 			fseek((*handler)->file_descriptor, offset, SEEK_SET);
-			if (fgets(response_value_tmp, response_length, (*handler)->file_descriptor) == NULL)
+			if (fread(response_value_tmp, response_length, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 			{
 				strncpy((*handler)->err_message, "Unable to allocate memory to retrieve value from the database\0", flitdb_max_err_size);
 				return FLITDB_ERROR;
@@ -659,6 +660,7 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 		size_buffer[1] = size_buffer[0];
 		size_buffer[0] = '0';
 	}
+	const unsigned short input_size_default = input_size;
 	size_t offset[4] = {0, 0, 0, 0};
 	unsigned short skip_offset[2] = {0, 0};
 	unsigned char read_length[2] = {15, 15};
@@ -673,7 +675,7 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 		fseek((*handler)->file_descriptor, offset[0], SEEK_SET);
 		offset[0] += read_length[0];
 		offset[1] = offset[0];
-		if (fgets((*handler)->buffer, (read_length[0] + 1), (*handler)->file_descriptor) == NULL)
+		if (fread((*handler)->buffer, read_length[0], sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 		{
 			if (offset[0] < (*handler)->size)
 			{
@@ -780,7 +782,7 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 		response_length_read[2] = (*handler)->buffer[(read_length[0] < 15) ? 5 : 12];
 		response_length_read[3] = (*handler)->buffer[(read_length[0] < 15) ? 6 : 13];
 		current_length = to_short(response_length_read);
-		if (current_length <= 0)
+		if (current_length < 0)
 		{
 			if (input_buffer != NULL)
 				free(input_buffer);
@@ -913,15 +915,15 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 				unsigned long reference_position = ((*handler)->size - buffer_offset);
 				strncpy((*handler)->buffer, "\0", sizeof((*handler)->buffer));
 				fseek((*handler)->file_descriptor, reference_position, SEEK_SET);
-				if (fgets((*handler)->buffer, (buffer_size + 1), (*handler)->file_descriptor) == NULL)
+				if (fread((*handler)->buffer, buffer_size, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 				{
 					strncpy((*handler)->err_message, "An error occurred in attempting to read data from the database\0", flitdb_max_err_size);
 					return FLITDB_ERROR;
 				}
 				fseek((*handler)->file_descriptor, (reference_position + offset_sizing), SEEK_SET);
-				if (fputs((*handler)->buffer, (*handler)->file_descriptor) == -1)
+				if (fwrite((*handler)->buffer, buffer_size, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 				{
-					strncpy((*handler)->err_message, "An error occurred in attempting to write data from the database\0", flitdb_max_err_size);
+					strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
 					return FLITDB_ERROR;
 				}
 			}
@@ -1004,15 +1006,15 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 				}
 				strncpy((*handler)->buffer, "\0", sizeof((*handler)->buffer));
 				fseek((*handler)->file_descriptor, buffer_offset, SEEK_SET);
-				if (fgets((*handler)->buffer, (buffer_size + 1), (*handler)->file_descriptor) == NULL)
+				if (fread((*handler)->buffer, buffer_size, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 				{
 					strncpy((*handler)->err_message, "An error occurred in attempting to read data from the database\0", flitdb_max_err_size);
 					return FLITDB_ERROR;
 				}
 				fseek((*handler)->file_descriptor, (buffer_offset - offset_sizing), SEEK_SET);
-				if (fputs((*handler)->buffer, (*handler)->file_descriptor) == -1)
+				if (fwrite((*handler)->buffer, buffer_size, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 				{
-					strncpy((*handler)->err_message, "An error occurred in attempting to write data from the database\0", flitdb_max_err_size);
+					strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
 					return FLITDB_ERROR;
 				}
 				buffer_offset += buffer_size;
@@ -1066,15 +1068,15 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 				unsigned long reference_position = ((*handler)->size - buffer_offset);
 				strncpy((*handler)->buffer, "\0", sizeof((*handler)->buffer));
 				fseek((*handler)->file_descriptor, reference_position, SEEK_SET);
-				if (fgets((*handler)->buffer, (buffer_size + 1), (*handler)->file_descriptor) == NULL)
+				if (fread((*handler)->buffer, buffer_size, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 				{
 					strncpy((*handler)->err_message, "An error occurred in attempting to read data from the database\0", flitdb_max_err_size);
 					return FLITDB_ERROR;
 				}
 				fseek((*handler)->file_descriptor, (reference_position + offset_sizing), SEEK_SET);
-				if (fputs((*handler)->buffer, (*handler)->file_descriptor) == -1)
+				if (fwrite((*handler)->buffer, buffer_size, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 				{
-					strncpy((*handler)->err_message, "An error occurred in attempting to write data from the database\0", flitdb_max_err_size);
+					strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
 					return FLITDB_ERROR;
 				}
 			}
@@ -1136,9 +1138,9 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			skip_offset_buffer[0] = '0';
 		}
 		fseek((*handler)->file_descriptor, info_skip_offset.position, SEEK_SET);
-		if (fputs(skip_offset_buffer, (*handler)->file_descriptor) == -1)
+		if (fwrite(skip_offset_buffer, 4, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 		{
-			strncpy((*handler)->err_message, "An error occurred in attempting to write data from the database\0", flitdb_max_err_size);
+			strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
 			return FLITDB_ERROR;
 		}
 	}
@@ -1160,9 +1162,9 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			row_buffer[0] = '0';
 		}
 		fseek((*handler)->file_descriptor, info_row_count.position, SEEK_SET);
-		if (fputs(row_buffer, (*handler)->file_descriptor) == -1)
+		if (fwrite(row_buffer, 3, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 		{
-			strncpy((*handler)->err_message, "An error occurred in attempting to write data from the database\0", flitdb_max_err_size);
+			strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
 			return FLITDB_ERROR;
 		}
 	}
@@ -1184,9 +1186,9 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			position_buffer[0] = '0';
 		}
 		fseek((*handler)->file_descriptor, info_row_position.position, SEEK_SET);
-		if (fputs(position_buffer, (*handler)->file_descriptor) == -1)
+		if (fwrite(position_buffer, 3, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 		{
-			strncpy((*handler)->err_message, "An error occurred in attempting to write data from the database\0", flitdb_max_err_size);
+			strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
 			return FLITDB_ERROR;
 		}
 	}
@@ -1217,9 +1219,9 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			input_length_buffer[0] = '0';
 		}
 		fseek((*handler)->file_descriptor, info_input_size.position, SEEK_SET);
-		if (fputs(input_length_buffer, (*handler)->file_descriptor) == -1)
+		if (fwrite(input_length_buffer, 4, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 		{
-			strncpy((*handler)->err_message, "An error occurred in attempting to write data from the database\0", flitdb_max_err_size);
+			strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
 			return FLITDB_ERROR;
 		}
 	}
@@ -1229,28 +1231,48 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 		switch (info_input_type.size)
 		{
 			case FLITDB_INTEGER:
-				fputs("1", (*handler)->file_descriptor);
+				if (fwrite("1", 1, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
+				{
+					strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
+					return FLITDB_ERROR;
+				}
 				break;
 			case FLITDB_DOUBLE:
-				fputs("2", (*handler)->file_descriptor);
+				if (fwrite("2", 1, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
+				{
+					strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
+					return FLITDB_ERROR;
+				}
 				break;
 			case FLITDB_FLOAT:
-				fputs("3", (*handler)->file_descriptor);
+				if (fwrite("3", 1, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
+				{
+					strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
+					return FLITDB_ERROR;
+				}
 				break;
 			case FLITDB_CHAR:
-				fputs("4", (*handler)->file_descriptor);
+				if (fwrite("4", 1, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
+				{
+					strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
+					return FLITDB_ERROR;
+				}
 				break;
 			case FLITDB_BOOL:
-				fputs("5", (*handler)->file_descriptor);
+				if (fwrite("5", 1, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
+				{
+					strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
+					return FLITDB_ERROR;
+				}
 				break;
 		}
 	}
 	if (info_input_buffer.use)
 	{
 		fseek((*handler)->file_descriptor, info_input_buffer.position, SEEK_SET);
-		if (fputs(input_buffer, (*handler)->file_descriptor) == -1)
+		if (fwrite(input_buffer, input_size_default, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 		{
-			strncpy((*handler)->err_message, "An error occurred in attempting to write data from the database\0", flitdb_max_err_size);
+			strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
 			return FLITDB_ERROR;
 		}
 	}
@@ -1262,7 +1284,7 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 		// Update skip amount for the next data group along after request.
 		strncpy((*handler)->buffer, "\0", sizeof((*handler)->buffer));
 		fseek((*handler)->file_descriptor, update_next, SEEK_SET);
-		if (fgets((*handler)->buffer, 5, (*handler)->file_descriptor) == NULL)
+		if (fread((*handler)->buffer, 5, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 		{
 			strncpy((*handler)->err_message, "An error occurred in attempting to read data from the database\0", flitdb_max_err_size);
 			return FLITDB_ERROR;
@@ -1303,9 +1325,9 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			skip_offset_buffer[0] = '0';
 		}
 		fseek((*handler)->file_descriptor, update_next, SEEK_SET);
-		if (fputs(skip_offset_buffer, (*handler)->file_descriptor) == -1)
+		if (fwrite(skip_offset_buffer, 4, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 		{
-			strncpy((*handler)->err_message, "An error occurred in attempting to write data from the database\0", flitdb_max_err_size);
+			strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", flitdb_max_err_size);
 			return FLITDB_ERROR;
 		}
 	}

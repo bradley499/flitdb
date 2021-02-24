@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-unsigned short to_short(char *chars)
+signed short to_short(char *chars)
 {
 	unsigned short i = 0;
 	for (i = 0; i < strlen(chars); i++)
