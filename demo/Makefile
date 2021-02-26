@@ -1,11 +1,15 @@
 GCC=gcc
 SRCDIR=../flitdb
 ARGS=-Wall -g -ggdb
+LIB_ARGS=-DFLITDB_LIB_DEMO
+ifeq ($(OS),Windows_NT)
+	LIB_ARGS += -DFLITDB_WIN_LIB
+endif
 LIB_FILES=flit.h
 DEMO_FILES=main.c
-FILES:=flit.c $(LIB_FILES) flit_handler.c flit_handler.h flit_misc.c flit_misc.h 
-SRC:=flit.c flit_handler.c flit_misc.c $(DEMO_FILES)
-OBJ=flit_handler.o flit.o flit_misc.o $(DEMO_FILES:.c=.o)
+FILES:=flit.c $(LIB_FILES)
+SRC:=flit.c $(DEMO_FILES)
+OBJ=$(SRC:.c=.o)
 
 .PHONY: build
 default: setup build
@@ -24,9 +28,10 @@ build:
 	@echo "Done"
 
 build_lib:
+	echo $(OS)
 	@cd $(SRCDIR) && $(MAKE)
 	@echo -n "\nCompiling with shared library... "
-	@$(GCC) $(ARGS) -DFLITDB_LIB_DEMO -c $(DEMO_FILES)
+	@$(GCC) $(ARGS) $(LIB_ARGS) -c $(DEMO_FILES)
 	@$(GCC) $(ARGS) $(DEMO_FILES:.c=.o) -lflitdb -o "./build/demo"
 	@echo "Done"
 
