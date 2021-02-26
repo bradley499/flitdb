@@ -349,3 +349,4 @@ With `flit` being any name that you wish, as it is a variable name. You do not n
 |`FLITDB_FLOAT`|The value type of float.|
 |`FLITDB_CHAR`|The value type of char.|
 |`FLITDB_BOOL`|The value type of bool.|
+|`FLITDB_VERSION`|The current FlitDB API version.|
