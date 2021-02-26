@@ -19,13 +19,31 @@
 #define FLITDB_CHAR         14 // The value type of char
 #define FLITDB_BOOL         15 // The value type of bool
 #define FLITDB_UNSAFE       16 // Discard all safety protocols to allow for larger database
+#define FLITDB_VERSION  0x52d9 // The current FlitDB version magic number
 
-#define FLITDB_VERSION 0x52d9 // The current FlitDB version magic number
-
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#ifdef flit_lib_compile
+#ifdef __cplusplus
+#define flitdb_extern extern "C" __declspec(dllexport)
+#else
+#define flitdb_extern extern __declspec(dllexport)
+#endif
+#else
+#ifdef FLITDB_WIN_LIB
+#ifdef __cplusplus
+#define flitdb_extern extern "C" __declspec(dllimport)
+#else
+#define flitdb_extern extern __declspec(dllimport)
+#endif
+#endif
+#endif
+#endif
+#ifndef flitdb_extern
 #ifdef __cplusplus
 #define flitdb_extern extern "C"
 #else
 #define flitdb_extern extern
+#endif
 #endif
 
 #ifndef flitdb_object_configured
@@ -288,5 +306,7 @@ flitdb_extern char* flitdb_retrieve_char(flitdb **handler);
  * @return bool 
  */
 flitdb_extern bool flitdb_retrieve_bool(flitdb **handler);
+
+#undef flitdb_extern
 
 #endif

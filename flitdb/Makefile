@@ -1,7 +1,7 @@
 GCC=gcc
 LIB=libflitdb.so
-SRC:=flit.c flit_handler.c flit_misc.c
-OBJ=flit_handler.o flit.o flit_misc.o
+SRC:=flit.c
+OBJ=flit.o
 
 default: build update clean done
 
