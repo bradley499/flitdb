@@ -236,6 +236,7 @@ typedef struct flitdb
 
 void flitdb_clear_values(flitdb **handler)
 {
+	// Resets all the data associated with the current insert/retrieval
 	(*handler)->value.int_value = 0;
 	(*handler)->value.double_value = 0;
 	(*handler)->value.float_value = 0;
@@ -248,8 +249,8 @@ void flitdb_clear_values(flitdb **handler)
 
 bool flitdb_new(flitdb **handler)
 {
-	*handler = &*(flitdb *)malloc(sizeof(flitdb));
-	if (*handler == NULL)
+	*handler = &*(flitdb *)malloc(sizeof(flitdb)); // Attempts to request for memory
+	if (*handler == NULL) // No memory was allocated
 		return false;
 	(*handler)->configured = (FLITDB_MAX_BUFFER_SIZE < 50 || FLITDB_MAX_BUFFER_SIZE > 1024);
 	(*handler)->size = 0;
@@ -274,16 +275,17 @@ void flitdb_destroy(flitdb **handler)
 	{
 		(*handler)->configured = false;
 		#ifndef __WINDOWS__
-		flock(fileno((*handler)->file_descriptor), LOCK_UN);
+		flock(fileno((*handler)->file_descriptor), LOCK_UN); // Removes lock on the database file of operation
 		#endif
-		fclose((*handler)->file_descriptor);
+		fclose((*handler)->file_descriptor); // Closes conenction to the database file of operation
 	}
 }
 
 const unsigned long long flitdb_max_size()
 {
+	// To calculate the maximum file size of what the database file can safely be read and written to
 	unsigned long long insertion_area[2] = {(FLITDB_COLUMN_POSITION_MAX * FLITDB_ROW_POSITION_MAX), (FLITDB_ROW_POSITION_MAX > 1 ? ((FLITDB_COLUMN_POSITION_MAX * (FLITDB_ROW_POSITION_MAX - 1)) * 8) : 0)};
-	return ((insertion_area[0] * 10000) + insertion_area[1] + (FLITDB_COLUMN_POSITION_MAX * 15));
+	return ((insertion_area[0] * 9999) + insertion_area[1] + (FLITDB_COLUMN_POSITION_MAX * 15));
 }
 
 int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
@@ -311,7 +313,7 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
 			}
 		}
 	}
-	(*handler)->file_descriptor = fopen(filename, (((flags & FLITDB_READONLY) == FLITDB_READONLY) ? "r" : ((((flags & FLITDB_CREATE) == FLITDB_CREATE) && !file_exists) ? "w+" : "r+")));
+	(*handler)->file_descriptor = fopen(filename, (((flags & FLITDB_READONLY) == FLITDB_READONLY) ? "r" : ((((flags & FLITDB_CREATE) == FLITDB_CREATE) && !file_exists) ? "w+" : "r+"))); // Opens a connection to a database file
 	if ((*handler)->file_descriptor == NULL)
 	{
 		strncpy((*handler)->err_message, "Failed to open the database\0", FLITDB_MAX_ERR_SIZE);
@@ -323,29 +325,29 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
 		(*handler)->size = ftell((*handler)->file_descriptor);
 		fseek((*handler)->file_descriptor, 0L, SEEK_SET);
 	}
+	(*handler)->configured = true; // Successfully configured correctly
 	#ifndef __WINDOWS__
-	if (flock(fileno((*handler)->file_descriptor), LOCK_EX | LOCK_NB) != 0)
+	if (flock(fileno((*handler)->file_descriptor), LOCK_EX | LOCK_NB) != 0) // Attempts to lock the current database file
 	{
 		strncpy((*handler)->err_message, "Exclusive rights to access the database could not be obtained\0", FLITDB_MAX_ERR_SIZE);
 		return FLITDB_BUSY;
 	}
 	#endif
-	if ((flags & FLITDB_UNSAFE) == FLITDB_UNSAFE)
-		(*handler)->unsafe = true;
-	else if ((*handler)->size > flitdb_max_size())
+	if ((flags & FLITDB_UNSAFE) == FLITDB_UNSAFE) // Checks if unsafe operations have been attributed to this handler
+		(*handler)->unsafe = true; // Unsafe mode is enabled
+	else if ((*handler)->size > flitdb_max_size()) // Checks if the database file is bigger than the maximum size for safe operations
 	{
 		strncpy((*handler)->err_message, "The database attempted to access has a larger size than what this object can read\0", FLITDB_MAX_ERR_SIZE);
 		return FLITDB_RANGE;
 	}
-	(*handler)->configured = true;
 	return FLITDB_SUCCESS;
 }
 
 char *flitdb_get_err_message(flitdb **handler)
 {
 	if (*handler == NULL)
-		return (char *)"This handler failed to be setup\0";
-	return (*handler)->err_message;
+		return (char *)"This handler failed to be setup\0"; // Default error message if handler has not been setup
+	return (*handler)->err_message; // Returns an error message (if set)
 }
 
 int flitdb_insert_value_int(flitdb **handler, signed long long int set_value)
@@ -365,9 +367,9 @@ int flitdb_insert_value_int(flitdb **handler, signed long long int set_value)
 		strncpy((*handler)->err_message, "Data insertion avoided due to unexpected tennant\0", FLITDB_MAX_ERR_SIZE);
 		return FLITDB_ERROR;
 	}
-	flitdb_clear_values(handler);
-	(*handler)->value_type = FLITDB_INTEGER;
-	(*handler)->value.int_value = set_value;
+	flitdb_clear_values(handler); // Clears the current insert values
+	(*handler)->value_type = FLITDB_INTEGER; // Sets the current insert value type to integer
+	(*handler)->value.int_value = set_value; // Sets the current insert value
 	return FLITDB_DONE;
 }
 
@@ -388,9 +390,9 @@ int flitdb_insert_value_double(flitdb **handler, long double set_value)
 		strncpy((*handler)->err_message, "Data insertion avoided due to unexpected tennant\0", FLITDB_MAX_ERR_SIZE);
 		return FLITDB_ERROR;
 	}
-	flitdb_clear_values(handler);
-	(*handler)->value_type = FLITDB_DOUBLE;
-	(*handler)->value.double_value = set_value;
+	flitdb_clear_values(handler); // Clears the current insert values
+	(*handler)->value_type = FLITDB_DOUBLE; // Sets the current insert value type to double
+	(*handler)->value.double_value = set_value; // Sets the current insert value
 	return FLITDB_DONE;
 }
 
@@ -411,9 +413,9 @@ int flitdb_insert_value_float(flitdb **handler, float set_value)
 		strncpy((*handler)->err_message, "Data insertion avoided due to unexpected tennant\0", FLITDB_MAX_ERR_SIZE);
 		return FLITDB_ERROR;
 	}
-	flitdb_clear_values(handler);
-	(*handler)->value_type = FLITDB_FLOAT;
-	(*handler)->value.float_value = set_value;
+	flitdb_clear_values(handler); // Clears the current insert values
+	(*handler)->value_type = FLITDB_FLOAT; // Sets the current insert value type to float
+	(*handler)->value.float_value = set_value; // Sets the current insert value
 	return FLITDB_DONE;
 }
 
@@ -439,9 +441,9 @@ int flitdb_insert_value_char(flitdb **handler, char *set_value)
 		strncpy((*handler)->err_message, "Data insertion avoided due to the length of a string being too large\0", FLITDB_MAX_ERR_SIZE);
 		return FLITDB_ERROR;
 	}
-	flitdb_clear_values(handler);
-	(*handler)->value_type = FLITDB_CHAR;
-	strncpy((*handler)->value.char_value, set_value, sizeof((*handler)->value.char_value));
+	flitdb_clear_values(handler); // Clears the current insert values
+	(*handler)->value_type = FLITDB_CHAR; // Sets the current insert value type to char array
+	strncpy((*handler)->value.char_value, set_value, sizeof((*handler)->value.char_value)); // Sets the current insert value
 	return FLITDB_DONE;
 }
 
@@ -462,46 +464,46 @@ int flitdb_insert_value_bool(flitdb **handler, bool set_value)
 		strncpy((*handler)->err_message, "Data insertion avoided due to unexpected tennant\0", FLITDB_MAX_ERR_SIZE);
 		return FLITDB_ERROR;
 	}
-	flitdb_clear_values(handler);
-	(*handler)->value_type = FLITDB_BOOL;
-	(*handler)->value.bool_value = set_value;
+	flitdb_clear_values(handler); // Clears the current insert values
+	(*handler)->value_type = FLITDB_BOOL; // Sets the current insert value type to boolean
+	(*handler)->value.bool_value = set_value; // Sets the current insert value
 	return FLITDB_DONE;
 }
 
 int flitdb_insert_reset(flitdb **handler)
 {
-	flitdb_clear_values(handler);
+	flitdb_clear_values(handler); // Clears the current insert values
 	return FLITDB_DONE;
 }
 
 signed long long flitdb_retrieve_value_int(flitdb **handler)
 {
-	return (*handler)->value.int_value;
+	return (*handler)->value.int_value; // Returns the value stored in the int register
 }
 
 long double flitdb_retrieve_value_double(flitdb **handler)
 {
-	return (*handler)->value.double_value;
+	return (*handler)->value.double_value; // Returns the value stored in the double register
 }
 
 float flitdb_retrieve_value_float(flitdb **handler)
 {
-	return (*handler)->value.float_value;
+	return (*handler)->value.float_value; // Returns the value stored in the float register
 }
 
 char *flitdb_retrieve_value_char(flitdb **handler)
 {
-	return (*handler)->value.char_value;
+	return (*handler)->value.char_value; // Returns the value stored in the char register
 }
 
 bool flitdb_retrieve_value_bool(flitdb **handler)
 {
-	return (*handler)->value.bool_value;
+	return (*handler)->value.bool_value; // Returns the value stored in the bool register
 }
 
 int flitdb_retrieve_value_type(flitdb **handler)
 {
-	return (*handler)->value_type;
+	return (*handler)->value_type; // Returns the value type
 }
 
 int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned short row_position)
@@ -622,10 +624,8 @@ int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned sh
 			data_type = FLITDB_BOOL;
 			break;
 		default:
-		{
 			strncpy((*handler)->err_message, "The database yielded an invalid datatype\0", FLITDB_MAX_ERR_SIZE);
 			return FLITDB_CORRUPT;
-		}
 		}
 		if (response_length_read == 0)
 		{
@@ -676,8 +676,6 @@ int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned sh
 				break;
 			case FLITDB_BOOL:
 				(*handler)->value.bool_value = (response_value[0] == '1');
-				break;
-			default:
 				break;
 			}
 			return FLITDB_DONE;
@@ -1542,13 +1540,13 @@ signed short flitdb_to_short(char *chars)
 		case '9':
 			break;
 		default:
-			return -1;
+			return -1; // Invalid
 		}
 	}
 	unsigned short short_value = 0;
 	for (unsigned short ii = 0; ii < i; ++ii)
-		short_value = short_value * 10 + chars[ii] - '0';
-	return short_value;
+		short_value = short_value * 10 + chars[ii] - '0'; // Calculates numeric representation
+	return short_value; // Returns result
 }
 
 signed long long flitdb_to_long_long(char *chars)
@@ -1572,20 +1570,20 @@ signed long long flitdb_to_long_long(char *chars)
 			break;
 		case '-':
 		{
-			if (!negative)
+			if (!negative) // Checks if the value isn't already a negative
 				negative = true;
 			else
-				return -1;
+				return -1; // Invalid
 			break;
 		}
 		default:
-			return -1;
+			return -1; // Invalid
 		}
 	}
 	signed long long long_long_value = 0;
 	for (unsigned short ii = 0; ii < i; ++ii)
-		long_long_value = long_long_value * 10 + chars[ii] - '0';
-	return (((negative) ? -1 : 1) * long_long_value);
+		long_long_value = long_long_value * 10 + chars[ii] - '0'; // Calculates numeric representation
+	return (((negative) ? -1 : 1) * long_long_value); // Returns result and sets negation state of result
 }
 
 double flitdb_to_double(char *chars)
@@ -1610,29 +1608,29 @@ double flitdb_to_double(char *chars)
 			break;
 		case '.':
 		{
-			if (decimalized == -1 && i > 0)
-				decimalized = i;
+			if (decimalized == -1 && i > 0) // Checks if the value isn't already a decimalized value
+				decimalized = i; // Sets decimalization position
 			else
-				return -1;
+				return -1; // Invalid
 			break;
 		}
 		case '-':
 		{
-			if (!negative)
+			if (!negative) // Checks if the value isn't already a negative
 				negative = true;
 			else
-				return -1;
+				return -1; // Invalid
 			break;
 		}
 		default:
-			return -1;
+			return -1; // Invalid
 		}
 	}
 	double double_value = 0;
 	for (unsigned short ii = 0; ii < i; ++ii)
 	{
 		if (chars[ii] != '.' && chars[ii] != '-')
-			double_value = double_value * 10 + chars[ii] - '0';
+			double_value = double_value * 10 + chars[ii] - '0'; // Calculates numeric representation
 	}
 	i -= 1;
 	if (decimalized != -1)
@@ -1640,22 +1638,20 @@ double flitdb_to_double(char *chars)
 		while (decimalized < i)
 		{
 			decimalized += 1;
-			double_value /= 10;
+			double_value /= 10; // Moves decimal position leftwards
 		}
 	}
-	if (negative)
-		double_value = -double_value;
-	return double_value;
+	return (((negative) ? -1 : 1) * double_value); // Returns result and sets negation state of result
 }
 
 float flitdb_to_float(char *chars)
 {
-	return (float)flitdb_to_double(chars);
+	return (float)flitdb_to_double(chars); // Returns double casted to float
 }
 
 long long unsigned int flitdb_abs(long long signed int value)
 {
-	return ((value > 0) ? value : -value);
+	return ((value > 0) ? value : -value); // Returns absolute value
 }
 
 #undef flitdb_truncate
