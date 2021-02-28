@@ -4,8 +4,10 @@ LIB_PATH=/usr/lib
 HEADER_PATH=/usr/include/flit.h
 OBJ_ARGS=-fPIC -Dflit_lib_compile
 LIB_ARG=-shared
+LIB_OBJ_ARG=
 ifeq ($(OS),Windows_NT)
 	LIB=flitdb.dll
+	LIB_OBJ_ARG=-Wl,--subsystem,windows
 else ifeq ($(shell uname -s),Darwin)
 	LIB=libflitdb.dylib
 	LIB_PATH=/usr/local/lib
@@ -30,7 +32,7 @@ update:
 	$(if !$(filter $(OS),Windows_NT),@sudo cp -v flit.h $(HEADER_PATH))
 
 clean:
-	@rm -rfv $(OBJ) $(LIB)
+	@rm -rfv $(OBJ) $(if !$(filter $(OS),Windows_NT),$(LIB))
 
 done:
 	@echo "Created FlitDB shared library!"
