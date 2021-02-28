@@ -2,25 +2,25 @@
 ## Syntax
 | API | Parameter | Parameter | Parameter | Parameter | API Version |
 |-|-|-|-|-|-|
-|[`flitdb_setup`](#flitdb_setup)|`filename`|[`&handler`](#handler)|`flags`||52d9|
-|[`flitdb_close`](#flitdb_close)|[`&handler`](#handler)||||52d9|
-|[`flitdb_version_check`](#flitdb_version_check)|||||52d9|
-|[`flitdb_errmsg`](#flitdb_errmsg)|[`&handler`](#handler)||||52d9|
-|[`flitdb_extract`](#flitdb_extract)|[`&handler`](#handler)|`column_position`|`row_position`||52d9|
-|[`flitdb_retrieved_type`](#flitdb_retrieved_type)|[`&handler`](#handler)||||52d9|
-|[`flitdb_insert`](#flitdb_insert)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
-|[`flitdb_insert_int`](#flitdb_insert_int)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
-|[`flitdb_insert_double`](#flitdb_insert_double)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
-|[`flitdb_insert_float`](#flitdb_insert_float)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
-|[`flitdb_insert_char`](#flitdb_insert_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
-|[`flitdb_insert_const_char`](#flitdb_insert_const_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
-|[`flitdb_insert_bool`](#flitdb_insert_bool)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|52d9|
-|[`flitdb_delete`](#flitdb_delete)|[`&handler`](#handler)|`column_position`|`row_position`||52d9|
-|[`flitdb_retrieve_int`](#flitdb_retrieve_int)|[`&handler`](#handler)||||52d9|
-|[`flitdb_retrieve_double`](#flitdb_retrieve_double)|[`&handler`](#handler)||||52d9|
-|[`flitdb_retrieve_float`](#flitdb_retrieve_float)|[`&handler`](#handler)||||52d9|
-|[`flitdb_retrieve_char`](#flitdb_retrieve_char)|[`&handler`](#handler)||||52d9|
-|[`flitdb_retrieve_bool`](#flitdb_retrieve_bool)|[`&handler`](#handler)||||52d9|
+|[`flitdb_setup`](#flitdb_setup)|`filename`|[`&handler`](#handler)|`flags`||7c78|
+|[`flitdb_close`](#flitdb_close)|[`&handler`](#handler)||||7c78|
+|[`flitdb_version_check`](#flitdb_version_check)|||||7c78|
+|[`flitdb_errmsg`](#flitdb_errmsg)|[`&handler`](#handler)||||7c78|
+|[`flitdb_extract`](#flitdb_extract)|[`&handler`](#handler)|`column_position`|`row_position`||7c78|
+|[`flitdb_retrieved_type`](#flitdb_retrieved_type)|[`&handler`](#handler)||||7c78|
+|[`flitdb_insert`](#flitdb_insert)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|7c78|
+|[`flitdb_insert_int`](#flitdb_insert_int)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|7c78|
+|[`flitdb_insert_double`](#flitdb_insert_double)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|7c78|
+|[`flitdb_insert_float`](#flitdb_insert_float)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|7c78|
+|[`flitdb_insert_char`](#flitdb_insert_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|7c78|
+|[`flitdb_insert_const_char`](#flitdb_insert_const_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|7c78|
+|[`flitdb_insert_bool`](#flitdb_insert_bool)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|7c78|
+|[`flitdb_delete`](#flitdb_delete)|[`&handler`](#handler)|`column_position`|`row_position`||7c78|
+|[`flitdb_retrieve_int`](#flitdb_retrieve_int)|[`&handler`](#handler)||||7c78|
+|[`flitdb_retrieve_double`](#flitdb_retrieve_double)|[`&handler`](#handler)||||7c78|
+|[`flitdb_retrieve_float`](#flitdb_retrieve_float)|[`&handler`](#handler)||||7c78|
+|[`flitdb_retrieve_char`](#flitdb_retrieve_char)|[`&handler`](#handler)||||7c78|
+|[`flitdb_retrieve_bool`](#flitdb_retrieve_bool)|[`&handler`](#handler)||||7c78|
 ## APIs
 ### flitdb_setup
 Opens database through a FlitDB connection for operations. This **must** be done in order to use any subsequent FlitDB API, as the database must be accessible in order to perform any actions to it. The parameters used in conjunction with this API are as follows:
