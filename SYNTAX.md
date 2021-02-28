@@ -4,6 +4,7 @@
 |-|-|-|-|-|-|
 |[`flitdb_setup`](#flitdb_setup)|`filename`|[`&handler`](#handler)|`flags`||52d9|
 |[`flitdb_close`](#flitdb_close)|[`&handler`](#handler)||||52d9|
+|[`flitdb_version_check`](#flitdb_version_check)|||||52d9|
 |[`flitdb_errmsg`](#flitdb_errmsg)|[`&handler`](#handler)||||52d9|
 |[`flitdb_extract`](#flitdb_extract)|[`&handler`](#handler)|`column_position`|`row_position`||52d9|
 |[`flitdb_retrieved_type`](#flitdb_retrieved_type)|[`&handler`](#handler)||||52d9|
@@ -47,6 +48,12 @@ The parameter defined is as follows:
 
 This function returns the following *Integer* value:
  - [FLITDB_DONE](#operation-responses)
+
+### flitdb_version_check
+Returns the FlitDB API version used.
+
+This function returns the following *Integer* value:
+ - [FLITDB_VERSION](#value-types)
 
 ### flitdb_errmsg
 Retrieves an error message from the `handler` object (if one has been provided).
