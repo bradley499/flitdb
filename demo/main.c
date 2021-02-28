@@ -9,6 +9,11 @@ int main()
 {
 	unsigned char authors_count = 3;
 	const char *authors[3] = {"Bradley Marshall\0", "Matt Dear\0", "John Hawkins\0"};
+	if (flitdb_version_check() != FLITDB_VERSION)
+	{
+		printf("The version of the FlitDB header used isn't compatible with the integrated FlitDB API\n");
+		return 1;
+	}
 	flitdb *flit;
 	if (flitdb_setup("demo.db", &flit, FLITDB_CREATE) != FLITDB_SUCCESS)
 	{
