@@ -50,6 +50,11 @@ double flitdb_to_double(char *chars);
 float flitdb_to_float(char *chars);
 long long unsigned int flitdb_abs(long long signed int value);
 
+unsigned int flitdb_version_check()
+{
+	return FLITDB_VERSION;
+}
+
 int flitdb_setup(const char *filename, flitdb **handler, int flags)
 {
 	if (!flitdb_new(handler))

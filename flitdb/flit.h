@@ -54,7 +54,7 @@ typedef struct flitdb flitdb;
  * @brief Configures the FlitDB handler to point to and operate on a specific file
  * 
  * @param filename The path for the file to operate on
- * @param handler The FlitDB handler The FlitDB handler
+ * @param handler The FlitDB handler
  * @param flags The read write operation flags to set on the database file
  * @return int 
  */
@@ -63,10 +63,17 @@ flitdb_extern int flitdb_setup(const char *filename, flitdb **handler, int flags
 /**
  * @brief Close the connection to the database, and delete the FlitDB handler object
  * 
- * @param handler The FlitDB handler The FlitDB handler
+ * @param handler The FlitDB handler
  * @return int 
  */
 flitdb_extern int flitdb_close(flitdb **handler);
+
+/**
+ * @brief Return the current version of the FlitDB API
+ * 
+ * @return unsigned int
+ */
+flitdb_extern unsigned int flitdb_version_check();
 
 /**
  * @brief Retrieve an error message from the FlitDB handler if once exists
