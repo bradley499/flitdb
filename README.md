@@ -22,6 +22,11 @@ Take a look at the API syntax used to handle and manage a database connection th
 ## Demo 🛠️
 For a demo of FlitDB in action, take a look at this [example program](demo) for more...
 
+## System support 💻
+FlitDB is designed for UNIX based systems. However, certain provisions have been made to ensure that FlitDB is compatible with:
+ - Linux
+ - MacOS
+
 ## Awards 🏆
  - Royal Hackaway v4 - Grand Prize 🥇
 
