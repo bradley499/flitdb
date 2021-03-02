@@ -5,11 +5,6 @@ LIB_ARGS=-DFLITDB_LIB_DEMO
 LIB_LINK=-lflitdb
 BUILD_DIR=./build
 TARGET=demo
-ifeq ($(OS),Windows_NT)
-	LIB_ARGS += -DFLITDB_WIN_LIB
-	LIB_LINK=-L. -lflitdb
-	TARGET=demo.exe
-endif
 LIB_FILES=flit.h
 DEMO_FILES=main.c
 FILES:=flit.c $(LIB_FILES)
@@ -34,16 +29,10 @@ build:
 
 build_lib:
 	@cd $(SRCDIR) && $(MAKE)
-ifeq ($(OS),Windows_NT)
-	@cp -v $(SRCDIR)/flitdb.dll .
-endif
-	@echo -n "\nCompiling with shared library... "
+	@echo -n "Compiling with shared library... "
 	@$(GCC) $(ARGS) $(LIB_ARGS) -c $(DEMO_FILES)
 	@$(GCC) $(ARGS) $(DEMO_FILES:.c=.o) $(LIB_LINK) -o $(BUILD_DIR)/$(TARGET)
 	@echo "Done"
-ifeq ($(OS),Windows_NT)
-	@mv -v flitdb.dll $(BUILD_DIR)
-endif
 
 lib: setup_lib build_lib
 
