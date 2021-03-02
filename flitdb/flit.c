@@ -5,15 +5,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#define __WINDOWS__
-#warning "File locking is currently not supported in Windows builds"
-#define flitdb_truncate _chsize
-#include <io.h>
-#else
-#define flitdb_truncate ftruncate
 #include <sys/file.h>
-#endif
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
@@ -279,9 +271,7 @@ void flitdb_destroy(flitdb **handler)
 	if ((*handler)->configured)
 	{
 		(*handler)->configured = false;
-		#ifndef __WINDOWS__
 		flock(fileno((*handler)->file_descriptor), LOCK_UN); // Removes lock on the database file of operation
-		#endif
 		fclose((*handler)->file_descriptor); // Closes conenction to the database file of operation
 	}
 }
@@ -331,13 +321,11 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
 		fseek((*handler)->file_descriptor, 0L, SEEK_SET);
 	}
 	(*handler)->configured = true; // Successfully configured correctly
-	#ifndef __WINDOWS__
 	if (flock(fileno((*handler)->file_descriptor), LOCK_EX | LOCK_NB) != 0) // Attempts to lock the current database file
 	{
 		strncpy((*handler)->err_message, "Exclusive rights to access the database could not be obtained\0", FLITDB_MAX_ERR_SIZE);
 		return FLITDB_BUSY;
 	}
-	#endif
 	if ((flags & FLITDB_UNSAFE) == FLITDB_UNSAFE) // Checks if unsafe operations have been attributed to this handler
 		(*handler)->unsafe = true; // Unsafe mode is enabled
 	else if ((*handler)->size > flitdb_max_size()) // Checks if the database file is bigger than the maximum size for safe operations
@@ -1225,7 +1213,7 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			(*handler)->size -= offset_sizing;
 			if ((*handler)->size == offset[1])
 				update_override_cancel = 4;
-			if (flitdb_truncate(fileno((*handler)->file_descriptor), (*handler)->size) != 0)
+			if (ftruncate(fileno((*handler)->file_descriptor), (*handler)->size) != 0)
 			{
 				if (input_buffer != NULL)
 					free(input_buffer);
@@ -1659,12 +1647,10 @@ long long unsigned int flitdb_abs(long long signed int value)
 	return ((value > 0) ? value : -value); // Returns absolute value
 }
 
-#undef flitdb_truncate
 #undef FLITDB_MAX_BUFFER_SIZE
 #undef FLITDB_MAX_CHAR_LENGTH
 #undef FLITDB_MAX_ERR_SIZE
 #undef FLITDB_COLUMN_POSITION_MAX
 #undef FLITDB_ROW_POSITION_MAX
-#undef __WINDOWS__
 
 #endif
