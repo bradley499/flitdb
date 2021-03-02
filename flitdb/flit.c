@@ -15,7 +15,7 @@
 const unsigned long long flitdb_max_size();
 
 // FlitDB database operations
-bool flitdb_new(flitdb **handler);
+int flitdb_new(flitdb **handler);
 void flitdb_destroy(flitdb **handler);
 int flitdb_connection_setup(flitdb **handler, const char *filename, int flags);
 char *flitdb_get_err_message(flitdb **handler);
@@ -49,7 +49,7 @@ unsigned int flitdb_version_check()
 
 int flitdb_setup(const char *filename, flitdb **handler, int flags)
 {
-	if (!flitdb_new(handler))
+	if (flitdb_new(handler) == FLITDB_ERROR)
 	{
 		*handler = NULL;
 		return FLITDB_ERROR;
@@ -244,11 +244,11 @@ void flitdb_clear_values(flitdb **handler)
 	strncpy((*handler)->buffer, "\0", sizeof((*handler)->buffer));
 }
 
-bool flitdb_new(flitdb **handler)
+int flitdb_new(flitdb **handler)
 {
 	*handler = &*(flitdb *)malloc(sizeof(flitdb)); // Attempts to request for memory
 	if (*handler == NULL) // No memory was allocated
-		return false;
+		return FLITDB_ERROR;
 	(*handler)->configured = (FLITDB_MAX_BUFFER_SIZE < 50 || FLITDB_MAX_BUFFER_SIZE > 1024);
 	(*handler)->size = 0;
 	(*handler)->read_only = false;
@@ -263,7 +263,7 @@ bool flitdb_new(flitdb **handler)
 	else
 		strncpy((*handler)->err_message, "\0", FLITDB_MAX_ERR_SIZE);
 	flitdb_clear_values(handler);
-	return true;
+	return FLITDB_SUCCESS;
 }
 
 void flitdb_destroy(flitdb **handler)
