@@ -7,7 +7,7 @@ FlitDB is a teeny tiny database - written in C. Databases are part of our everyd
 
 You might think that this would lead to your data being: lost, mangled, or a pain to read; but it doesn't have to be. FlitDB nixes the need for redundant nullified data, by introducing a variable skip amount between each value grouping; this allows FlitDB to have a broad scope of influence over thousands of different data points, whilst yielding a smaller file size, compared to other conventional database technologies.
 
-Instructions are good, but are even better, when they can be utilized in the construction of a database; FlitDB uses instructions embedded into the actual database file, to aid with the reading, and writing of data on itself. The database does not include any `null` (or empty) values; this done to lower the total size of the database file. With a smaller file size the data can be read in a fast and timely manor.
+Instructions are good, but are even better, when they can be utilized in the construction of a database; FlitDB uses instructions embedded into the actual database file, to aid with the reading, and writing of data on itself. The database does not include any `null` (or empty) values; this done to lower the total size of the database file. With a smaller file size the data can be read in a fast and timely manner.
 
 ## How to use 🖇️
 ### Install as library
