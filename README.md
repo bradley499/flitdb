@@ -1,7 +1,9 @@
-<h1 align="center">FlitDB</h1>
+![FlitDB](../assets/banner.png?raw=true)
 
 <p align="center"><i><b>Verb</b> ~ Move swiftly and lightly.</i></p>
 </center>
+
+***
 
 FlitDB is a teeny tiny database - written in C. Databases are part of our everyday lives; but one issue tends to arise with databases. *What is that?* Simply put, it is: **Redundancy**. With this in mind, FlitDB sets out to eliminate this by removing all unnecessary values from the data that you store.
 
