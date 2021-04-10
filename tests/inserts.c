@@ -42,13 +42,3 @@ int main(int argc, char const *argv[])
 	flitdb_close(&flit);
 	return 0;
 }
-
-
-
-
-
-
-/* Things to do:
- - Fix skip offset!
-
-*/
