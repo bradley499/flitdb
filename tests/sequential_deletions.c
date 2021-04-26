@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <flit.h>
 
-#define MAX 999
+#define MAX 70
 #define MAX_INSERTIONS (MAX * MAX)
 
 int main(int argc, char const *argv[])
