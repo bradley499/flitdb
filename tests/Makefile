@@ -26,11 +26,15 @@ build:
 	@$(GCC) $(ARGS) -c sequential_inserts.c
 	@$(GCC) $(ARGS) -c deletions.c
 	@$(GCC) $(ARGS) -c sequential_deletions.c
+	@$(GCC) $(ARGS) -c permission_create.c
+	@$(GCC) $(ARGS) -c permission_readonly.c
 	@$(GCC) $(ARGS) -c flit.c
 	@$(GCC) $(ARGS) inserts.o flit.o -o $(BUILD_DIR)/test_insert
 	@$(GCC) $(ARGS) sequential_inserts.o flit.o -o $(BUILD_DIR)/test_sequential_inserts
 	@$(GCC) $(ARGS) deletions.o flit.o -o $(BUILD_DIR)/test_delete
 	@$(GCC) $(ARGS) sequential_deletions.o flit.o -o $(BUILD_DIR)/test_sequential_delete
+	@$(GCC) $(ARGS) permission_create.o flit.o -o $(BUILD_DIR)/permission_create
+	@$(GCC) $(ARGS) permission_readonly.o flit.o -o $(BUILD_DIR)/permission_readonly
 	@echo "Done"
 
 test:
@@ -44,6 +48,10 @@ test:
 	@cd $(BUILD_DIR);./test_sequential_inserts > /dev/null 2>&1 && echo "~ Success" || echo "~ Failed"
 	@echo -n "Sequential deletions "
 	@cd $(BUILD_DIR);./test_sequential_delete > /dev/null 2>&1 && echo "~ Success" || echo "~ Failed"
+	@echo -n "Permission create "
+	@cd $(BUILD_DIR);./permission_create > /dev/null 2>&1 && echo "~ Success" || echo "~ Failed"
+	@echo -n "Permission readonly "
+	@cd $(BUILD_DIR);./permission_readonly > /dev/null 2>&1 && echo "~ Success" || echo "~ Failed"
 
 clean:
 	@rm -rfv $(BUILD_DIR) *.o flit.*
