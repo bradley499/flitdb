@@ -1,4 +1,4 @@
-![FlitDB](../assets/banner.png?raw=true)
+![FlitDB](./assets/banner.png?raw=true)
 
 <p align="center"><i><b>Verb</b> ~ Move swiftly and lightly.</i></p>
 
