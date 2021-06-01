@@ -19,7 +19,7 @@
 #define FLITDB_CHAR         14 // The value type of char
 #define FLITDB_BOOL         15 // The value type of bool
 #define FLITDB_UNSAFE       16 // Discard all safety protocols to allow for larger database
-#define FLITDB_VERSION  0x7c78 // The current FlitDB version magic number
+#define FLITDB_VERSION  0xa08c // The current FlitDB version magic number
 
 #ifdef __cplusplus
 #define flitdb_extern extern "C"
