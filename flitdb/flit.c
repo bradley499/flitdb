@@ -36,10 +36,6 @@ bool flitdb_retrieve_value_bool(flitdb **handler);
 int flitdb_retrieve_value_type(flitdb **handler);
 
 // FlitDB miscellaneous functions
-signed short flitdb_to_short(char *chars);
-signed long long flitdb_to_long_long(char *chars);
-double flitdb_to_double(char *chars);
-float flitdb_to_float(char *chars);
 long long unsigned int flitdb_abs(long long signed int value);
 
 unsigned int flitdb_version_check()
@@ -611,21 +607,7 @@ int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned sh
 					strncpy((*handler)->err_message, "An error occurred in attempting to read data from the database\0", FLITDB_MAX_ERR_SIZE);
 					return FLITDB_ERROR;
 				}
-				switch (data_type)
-				{
-				case FLITDB_INTEGER:
-					(*handler)->value.int_value = 0;//flitdb_to_int(response_value);
-					break;
-				case FLITDB_FLOAT:
-					(*handler)->value.float_value = flitdb_to_float(response_value);
-					break;
-				case FLITDB_CHAR:
-					strncpy((*handler)->value.char_value, response_value, sizeof((*handler)->value.char_value));
-					break;
-				case FLITDB_BOOL:
-					(*handler)->value.bool_value = (response_value[0] == '1');
-					break;
-				}
+				strncpy((*handler)->value.char_value, response_value, sizeof((*handler)->value.char_value));
 				return FLITDB_DONE;
 			}
 			response_length += (1 + sizeof(short));
@@ -1249,134 +1231,6 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			free(input_buffer);
 	flitdb_clear_values(handler);
 	return FLITDB_DONE;
-}
-
-signed short flitdb_to_short(char *chars)
-{
-	unsigned short i = 0;
-	for (i = 0; i < strlen(chars); i++)
-	{
-		switch (chars[i])
-		{
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			break;
-		default:
-			return -1; // Invalid
-		}
-	}
-	unsigned short short_value = 0;
-	for (unsigned short ii = 0; ii < i; ++ii)
-		short_value = short_value * 10 + chars[ii] - '0'; // Calculates numeric representation
-	return short_value;									  // Returns result
-}
-
-signed long long flitdb_to_long_long(char *chars)
-{
-	unsigned short i = 0;
-	bool negative = false;
-	for (i = 0; i < strlen(chars); i++)
-	{
-		switch (chars[i])
-		{
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			break;
-		case '-':
-		{
-			if (!negative) // Checks if the value isn't already a negative
-				negative = true;
-			else
-				return -1; // Invalid
-			break;
-		}
-		default:
-			return -1; // Invalid
-		}
-	}
-	signed long long long_long_value = 0;
-	for (unsigned short ii = 0; ii < i; ++ii)
-		long_long_value = long_long_value * 10 + chars[ii] - '0'; // Calculates numeric representation
-	return (((negative) ? -1 : 1) * long_long_value);			  // Returns result and sets negation state of result
-}
-
-double flitdb_to_double(char *chars)
-{
-	unsigned short i = 0;
-	signed short decimalized = -1;
-	bool negative = false;
-	for (i = 0; i < strlen(chars); i++)
-	{
-		switch (chars[i])
-		{
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			break;
-		case '.':
-		{
-			if (decimalized == -1 && i > 0) // Checks if the value isn't already a decimalized value
-				decimalized = i;			// Sets decimalization position
-			else
-				return -1; // Invalid
-			break;
-		}
-		case '-':
-		{
-			if (!negative) // Checks if the value isn't already a negative
-				negative = true;
-			else
-				return -1; // Invalid
-			break;
-		}
-		default:
-			return -1; // Invalid
-		}
-	}
-	double double_value = 0;
-	for (unsigned short ii = 0; ii < i; ++ii)
-	{
-		if (chars[ii] != '.' && chars[ii] != '-')
-			double_value = double_value * 10 + chars[ii] - '0'; // Calculates numeric representation
-	}
-	i -= 1;
-	if (decimalized != -1)
-	{
-		while (decimalized < i)
-		{
-			decimalized += 1;
-			double_value /= 10; // Moves decimal position leftwards
-		}
-	}
-	return (((negative) ? -1 : 1) * double_value); // Returns result and sets negation state of result
-}
-
-float flitdb_to_float(char *chars)
-{
-	return (float)flitdb_to_double(chars); // Returns double casted to float
 }
 
 long long unsigned int flitdb_abs(long long signed int value)
