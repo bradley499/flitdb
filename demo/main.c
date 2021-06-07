@@ -7,8 +7,8 @@
 
 int main()
 {
-	unsigned char authors_count = 3;
-	const char *authors[3] = {"Bradley Marshall\0", "Matt Dear\0", "John Hawkins\0"};
+	unsigned char contributor_count = 3;
+	const char *contributors[3] = {"Bradley Marshall\0", "Matt Dear\0", "John Hawkins\0"};
 	if (flitdb_version_check() != FLITDB_VERSION)
 	{
 		printf("The version of the FlitDB header used isn't compatible with the integrated FlitDB API\n");
@@ -25,9 +25,9 @@ int main()
 		printf("%s\n", flitdb_errmsg(&flit));
 		return 1;
 	}
-	for (unsigned char i = authors_count; i > 0; i--)
+	for (unsigned char i = contributor_count; i > 0; i--)
 	{
-		if (flitdb_insert_const_char(&flit, 2, i, authors[(i - 1)]) != FLITDB_DONE)
+		if (flitdb_insert_const_char(&flit, 2, i, contributors[(i - 1)]) != FLITDB_DONE)
 		{
 			printf("%s\n", flitdb_errmsg(&flit));
 			return 1;
@@ -47,15 +47,15 @@ int main()
 		return 1;
 	}
 	}
-	printf("Authors:\n");
-	for (unsigned char i = 1; i <= authors_count; i++)
+	printf("Contributors:\n");
+	for (unsigned char i = 1; i <= contributor_count; i++)
 	{
 		switch (flitdb_extract(&flit, 2, i))
 		{
 		case FLITDB_DONE:
 		case FLITDB_NULL:
 		{
-			printf("- %s%s\n", flitdb_retrieve_char(&flit), ((i < authors_count) ? "," : "."));
+			printf("- %s%s\n", flitdb_retrieve_char(&flit), ((i < contributor_count) ? "," : "."));
 			flitdb_delete(&flit, 2, i);
 			break;
 		}
