@@ -13,12 +13,11 @@
 #define FLITDB_READONLY     8  // Only allow the reading of the database
 #define FLITDB_DONE         9  // The operation was completed successfully
 #define FLITDB_NULL         10 // The operation resulted in a null lookup
-#define FLITDB_INTEGER      11 // The value type of integer
-#define FLITDB_DOUBLE       12 // The value type of double
-#define FLITDB_FLOAT        13 // The value type of float
-#define FLITDB_CHAR         14 // The value type of char
-#define FLITDB_BOOL         15 // The value type of bool
-#define FLITDB_UNSAFE       16 // Discard all safety protocols to allow for larger database
+#define FLITDB_INTEGER      11 // The value type of double
+#define FLITDB_FLOAT        12 // The value type of float
+#define FLITDB_CHAR         13 // The value type of char
+#define FLITDB_BOOL         14 // The value type of bool
+#define FLITDB_UNSAFE       15 // Discard all safety protocols to allow for larger database
 #define FLITDB_VERSION  0xa08c // The current FlitDB version magic number
 
 #ifdef __cplusplus
@@ -89,7 +88,7 @@ flitdb_extern int flitdb_retrieved_type(flitdb **handler);
 #ifdef __cplusplus
 
 /**
- * @brief Insert an integer (signed long long int) into the FlitDB handler and store
+ * @brief Insert an integer (int) into the FlitDB handler and store
  * 
  * @param handler The FlitDB handler 
  * @param column_position The column that you wish to insert the value into
@@ -97,12 +96,12 @@ flitdb_extern int flitdb_retrieved_type(flitdb **handler);
  * @param value The value to insert
  * @return int 
  */
-int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsigned short row_position, signed long long int value);
+int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsigned short row_position, int value);
 
 #endif
 
 /**
- * @brief Insert an integer (signed long long int) into the FlitDB handler and store
+ * @brief Insert an integer (int) into the FlitDB handler and store
  * 
  * @param handler The FlitDB handler 
  * @param column_position The column that you wish to insert the value into
@@ -110,34 +109,7 @@ int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsi
  * @param value The value to insert
  * @return int 
  */
-
-flitdb_extern int flitdb_insert_int(flitdb **handler, unsigned long long int column_position, unsigned short row_position, signed long long int value);
-
-#ifdef __cplusplus
-
-/**
- * @brief Insert an double (long double) into the FlitDB handler and store
- * 
- * @param handler The FlitDB handler 
- * @param column_position The column that you wish to insert the value into
- * @param row_position The row that you wish to insert the value into
- * @param value The value to insert
- * @return int 
- */
-int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsigned short row_position, long double value);
-
-#endif
-
-/**
- * @brief Insert an double (long double) into the FlitDB handler and store
- * 
- * @param handler The FlitDB handler 
- * @param column_position The column that you wish to insert the value into
- * @param row_position The row that you wish to insert the value into
- * @param value The value to insert
- * @return int 
- */
-flitdb_extern int flitdb_insert_double(flitdb **handler, unsigned long long int column_position, unsigned short row_position, long double value);
+flitdb_extern int flitdb_insert_int(flitdb **handler, unsigned long long int column_position, unsigned short row_position, int value);
 
 #ifdef __cplusplus
 
@@ -254,20 +226,20 @@ flitdb_extern int flitdb_insert_bool(flitdb **handler, unsigned long long int co
 flitdb_extern int flitdb_delete(flitdb **handler, unsigned long long int column_position, unsigned short row_position);
 
 /**
- * @brief Retrieve an integer (signed long long int) from the extracted value from the FlitDB handler
+ * @brief Retrieve an long (signed long long int) from the extracted value from the FlitDB handler
  * 
  * @param handler The FlitDB handler 
  * @return signed long long int 
  */
-flitdb_extern signed long long int flitdb_retrieve_int(flitdb **handler);
+flitdb_extern signed long long int flitdb_retrieve_long(flitdb **handler);
 
 /**
- * @brief Retrieve an double (long double) from the extracted value from the FlitDB handler
+ * @brief Retrieve an integer (int) from the extracted value from the FlitDB handler
  * 
  * @param handler The FlitDB handler 
- * @return long double 
+ * @return int 
  */
-flitdb_extern long double flitdb_retrieve_double(flitdb **handler);
+flitdb_extern int flitdb_retrieve_int(flitdb **handler);
 
 /**
  * @brief Retrieve an float from the extracted value from the FlitDB handler
