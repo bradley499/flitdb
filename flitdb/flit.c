@@ -684,11 +684,17 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 	{
 		input_size = strlen((*handler)->value.char_value);
 		if (input_size == 0)
+		{
+			flitdb_clear_values(handler);
 			if (input_buffer != NULL)
 				free(input_buffer);
-		input_buffer = (char *)calloc((input_size + 1), sizeof(char));
-		input_buffer[input_size] = '\0';
-		strncpy(input_buffer, (*handler)->value.char_value, input_size);
+		}
+		else
+		{
+			input_buffer = (char *)calloc((input_size + 1), sizeof(char));
+			input_buffer[input_size] = '\0';
+			strncpy(input_buffer, (*handler)->value.char_value, input_size);
+		}
 		break;
 	}
 	}
