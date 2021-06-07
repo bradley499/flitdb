@@ -35,9 +35,6 @@ char *flitdb_retrieve_value_char(flitdb **handler);
 bool flitdb_retrieve_value_bool(flitdb **handler);
 int flitdb_retrieve_value_type(flitdb **handler);
 
-// FlitDB miscellaneous functions
-long long unsigned int flitdb_abs(long long signed int value);
-
 unsigned int flitdb_version_check()
 {
 	return FLITDB_VERSION;
@@ -1212,7 +1209,7 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			}
 			break;
 		case FLITDB_FLOAT:
-			if (fwrite(input_buffer, sizeof(float), 1, (*handler)->file_descriptor) != 1)
+			if (fwrite(&(*handler)->value.float_value, sizeof(float), 1, (*handler)->file_descriptor) != 1)
 			{
 				strncpy((*handler)->err_message, "An error occurred in attempting to write data to the database\0", FLITDB_MAX_ERR_SIZE);
 				return FLITDB_ERROR;
@@ -1231,11 +1228,6 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			free(input_buffer);
 	flitdb_clear_values(handler);
 	return FLITDB_DONE;
-}
-
-long long unsigned int flitdb_abs(long long signed int value)
-{
-	return ((value > 0) ? value : -value); // Returns absolute value
 }
 
 #undef FLITDB_MAX_BUFFER_SIZE
