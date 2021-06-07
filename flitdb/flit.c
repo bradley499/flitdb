@@ -197,7 +197,7 @@ bool flitdb_retrieve_bool(flitdb **handler)
 #define FLITDB_MAX_ERR_SIZE 100
 #define FLITDB_COLUMN_POSITION_MAX 0xFFFF
 #define FLITDB_ROW_POSITION_MAX 0xFFFF
-#define FLITDB_SEGMENT_SIZE 3
+#define FLITDB_SEGMENT_SIZE 3 
 #define FLITDB_PARTITION_SIZE 4
 #define FLITDB_PARTITION_AND_SEGMENT (FLITDB_SEGMENT_SIZE + FLITDB_PARTITION_SIZE)
 
@@ -504,15 +504,10 @@ int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned sh
 		offset += read_length;
 		if (read_length == FLITDB_PARTITION_AND_SEGMENT)
 		{
-			signed short skip_amount;
+			unsigned short skip_amount;
 			if (fread(&skip_amount, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 			{
 				strncpy((*handler)->err_message, "An error occurred in attempting to read data from the database\0", FLITDB_MAX_ERR_SIZE);
-				return FLITDB_ERROR;
-			}
-			if (skip_amount < 0)
-			{
-				strncpy((*handler)->err_message, "Skip offset negation detected\0", FLITDB_MAX_ERR_SIZE);
 				return FLITDB_ERROR;
 			}
 			skip_offset += (skip_amount + 1);
@@ -723,7 +718,7 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 		input_size += sizeof(short);
 	size_t offset[6] = {0, 0, 0, 0, 0, 0};
 	unsigned short skip_offset[2] = {0, 0};
-	signed short skip_amount[2] = {0, 0};
+	unsigned short skip_amount[2] = {0, 0};
 	unsigned short read_length[2] = {FLITDB_PARTITION_AND_SEGMENT, FLITDB_PARTITION_AND_SEGMENT};
 	signed short row_count[3] = {0, 0, 0};
 	unsigned short current_length[2] = {0, 0};
@@ -772,11 +767,6 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 				if (fread(&skip_amount[0], 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 				{
 					strncpy((*handler)->err_message, "An error occurred in attempting to read data from the database\0", FLITDB_MAX_ERR_SIZE);
-					return FLITDB_ERROR;
-				}
-				if (skip_amount[0] < 0)
-				{
-					strncpy((*handler)->err_message, "Skip offset negation detected\0", FLITDB_MAX_ERR_SIZE);
 					return FLITDB_ERROR;
 				}
 				skip_offset[1] = skip_offset[0];
@@ -1107,8 +1097,6 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 			else
 				skip_amount[0] = (column_position - 1);
 		}
-		if (skip_amount[0] < 0)
-			skip_amount[0] = 0;
 		info_skip_offset.size = skip_amount[0];
 		info_row_position.use = true;
 		info_row_position.position = (offset[1]);
@@ -1138,11 +1126,6 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 					skip_amount[0] = 0;
 				else
 					skip_amount[0] = (skip_amount[1] - (skip_amount[0] + 1));
-				if (skip_amount[0] < 0)
-				{
-					strncpy((*handler)->err_message, "Skip offset negation detected\0", FLITDB_MAX_ERR_SIZE);
-					return FLITDB_ERROR;
-				}
 				fseek((*handler)->file_descriptor, offset[0], SEEK_SET);
 				if (fwrite(&skip_amount[0], sizeof(short), 1, (*handler)->file_descriptor) != 1)
 				{
@@ -1166,11 +1149,6 @@ int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, u
 				return FLITDB_ERROR;
 			}
 			skip_amount[0] += (skip_amount[1] + 1);
-			if (skip_amount[0] < 0)
-			{
-				strncpy((*handler)->err_message, "Skip offset negation detected\0", FLITDB_MAX_ERR_SIZE);
-				return FLITDB_ERROR;
-			}
 			info_skip_offset.size = skip_amount[0];
 		}
 		else
