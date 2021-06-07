@@ -13,7 +13,7 @@
 #define FLITDB_READONLY     8  // Only allow the reading of the database
 #define FLITDB_DONE         9  // The operation was completed successfully
 #define FLITDB_NULL         10 // The operation resulted in a null lookup
-#define FLITDB_INTEGER      11 // The value type of double
+#define FLITDB_INTEGER      11 // The value type of int
 #define FLITDB_FLOAT        12 // The value type of float
 #define FLITDB_CHAR         13 // The value type of char
 #define FLITDB_BOOL         14 // The value type of bool
@@ -75,7 +75,6 @@ flitdb_extern int flitdb_extract(flitdb **handler, unsigned long long int column
  * @brief Retrieve a numeric representation of what data type was retrieved:
  * 		  FLITDB_NULL,
  * 		  FLITDB_INTEGER,
- * 		  FLITDB_DOUBLE,
  * 		  FLITDB_FLOAT,
  * 		  FLITDB_CHAR,
  * 		  FLITDB_BOOL
