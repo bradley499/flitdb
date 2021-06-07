@@ -35,4 +35,4 @@ FlitDB is designed for UNIX based systems. However, certain provisions have been
 This project would not have been developed without the additional support, and contributions of:
 
  - [Matt Dear](https://github.com/mattdear)
- - John Hawkins
+ - Sky Hawkins
