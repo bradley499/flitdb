@@ -20,7 +20,6 @@ char *flitdb_get_err_message(flitdb **handler);
 int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned short row_position);
 void flitdb_clear_values(flitdb **handler);
 int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, unsigned short row_position);
-int flitdb_insert_value_long(flitdb **handler, signed long long set_value);
 int flitdb_insert_value_int(flitdb **handler, int set_value);
 int flitdb_insert_value_float(flitdb **handler, float set_value);
 int flitdb_insert_value_char(flitdb **handler, char *set_value);
