@@ -19,7 +19,7 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags);
 char *flitdb_get_err_message(flitdb **handler);
 int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned short row_position);
 void flitdb_clear_values(flitdb **handler);
-int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, unsigned short row_position);
+int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position);
 int flitdb_insert_value_int(flitdb **handler, int set_value);
 int flitdb_insert_value_float(flitdb **handler, float set_value);
 int flitdb_insert_value_char(flitdb **handler, char *set_value);
@@ -59,7 +59,7 @@ char *flitdb_errmsg(flitdb **handler)
 	return flitdb_get_err_message(handler);
 }
 
-int flitdb_extract(flitdb **handler, unsigned long long int column_position, unsigned short row_position)
+int flitdb_extract(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position)
 {
 	return flitdb_read_at(handler, column_position, row_position);
 }
@@ -69,7 +69,7 @@ int flitdb_retrieved_type(flitdb **handler)
 	return flitdb_retrieve_value_type(handler);
 }
 
-int flitdb_insert_int(flitdb **handler, unsigned long long int column_position, unsigned short row_position, int value)
+int flitdb_insert_int(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, int value)
 {
 	int insert_success = flitdb_insert_value_int(handler, value);
 	if (insert_success != FLITDB_DONE)
@@ -79,14 +79,14 @@ int flitdb_insert_int(flitdb **handler, unsigned long long int column_position, 
 
 #ifdef __cplusplus
 
-int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsigned short row_position, int value)
+int flitdb_insert(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, int value)
 {
 	return flitdb_insert_int(handler, column_position, row_position, value);
 }
 
 #endif
 
-int flitdb_insert_float(flitdb **handler, unsigned long long int column_position, unsigned short row_position, float value)
+int flitdb_insert_float(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, float value)
 {
 	int insert_success = flitdb_insert_value_float(handler, value);
 	if (insert_success != FLITDB_DONE)
@@ -96,14 +96,14 @@ int flitdb_insert_float(flitdb **handler, unsigned long long int column_position
 
 #ifdef __cplusplus
 
-int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsigned short row_position, float value)
+int flitdb_insert(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, float value)
 {
 	return flitdb_insert_float(handler, column_position, row_position, value);
 }
 
 #endif
 
-int flitdb_insert_char(flitdb **handler, unsigned long long int column_position, unsigned short row_position, char *value)
+int flitdb_insert_char(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, char *value)
 {
 	int insert_success = flitdb_insert_value_char(handler, value);
 	if (insert_success != FLITDB_DONE)
@@ -113,14 +113,14 @@ int flitdb_insert_char(flitdb **handler, unsigned long long int column_position,
 
 #ifdef __cplusplus
 
-int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsigned short row_position, char *value)
+int flitdb_insert(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, char *value)
 {
 	return flitdb_insert_char(handler, column_position, row_position, value);
 }
 
 #endif
 
-int flitdb_insert_const_char(flitdb **handler, unsigned long long int column_position, unsigned short row_position, const char *value)
+int flitdb_insert_const_char(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, const char *value)
 {
 	int value_length = strlen(value);
 	char tmp_value[(value_length + 1)];
@@ -132,14 +132,14 @@ int flitdb_insert_const_char(flitdb **handler, unsigned long long int column_pos
 
 #ifdef __cplusplus
 
-int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsigned short row_position, const char *value)
+int flitdb_insert(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, const char *value)
 {
 	return flitdb_insert_const_char(handler, column_position, row_position, value);
 }
 
 #endif
 
-int flitdb_insert_bool(flitdb **handler, unsigned long long int column_position, unsigned short row_position, bool value)
+int flitdb_insert_bool(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, bool value)
 {
 	int insert_success = flitdb_insert_value_bool(handler, (value == true));
 	if (insert_success != FLITDB_DONE)
@@ -149,14 +149,14 @@ int flitdb_insert_bool(flitdb **handler, unsigned long long int column_position,
 
 #ifdef __cplusplus
 
-int flitdb_insert(flitdb **handler, unsigned long long int column_position, unsigned short row_position, bool value)
+int flitdb_insert(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, bool value)
 {
 	return flitdb_insert_bool(handler, column_position, row_position, value);
 }
 
 #endif
 
-int flitdb_delete(flitdb **handler, unsigned long long int column_position, unsigned short row_position)
+int flitdb_delete(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position)
 {
 	flitdb_insert_reset(handler);
 	return flitdb_insert_at(handler, column_position, row_position);
@@ -661,7 +661,7 @@ int flitdb_read_at(flitdb **handler, unsigned short column_position, unsigned sh
 	return FLITDB_NULL;
 }
 
-int flitdb_insert_at(flitdb **handler, unsigned long long int column_position, unsigned short row_position)
+int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position)
 {
 	if (!(*handler)->configured)
 	{
