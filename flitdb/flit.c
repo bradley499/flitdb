@@ -183,7 +183,7 @@ bool flitdb_retrieve_bool(flitdb **handler)
 	return flitdb_retrieve_value_bool(handler);
 }
 
-#define FLITDB_MAX_BUFFER_SIZE 56
+#define FLITDB_MAX_BUFFER_SIZE 1024
 #define FLITDB_MAX_CHAR_LENGTH 10000
 #define FLITDB_MAX_ERR_SIZE 100
 #define FLITDB_COLUMN_POSITION_MAX 0xFFFF
