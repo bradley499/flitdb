@@ -17,7 +17,7 @@
 #define FLITDB_FLOAT        12 // The value type of float
 #define FLITDB_CHAR         13 // The value type of char
 #define FLITDB_BOOL         14 // The value type of bool
-#define FLITDB_UNSAFE       15 // Discard all safety protocols to allow for larger database
+#define FLITDB_UNSAFE       16 // Discard all safety protocols to allow for larger database
 #define FLITDB_VERSION  0xc8ae // The current FlitDB version magic number
 
 #ifdef __cplusplus
