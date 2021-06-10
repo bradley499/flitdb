@@ -12,7 +12,8 @@ int main(int argc, char const *argv[])
 {
 	flitdb *flit;
 	assert(flitdb_setup("./test2.db", &flit, FLITDB_CREATE) == FLITDB_SUCCESS);
-	unsigned int inserted[MAX][MAX] = {{}};
+	int (*inserted)[MAX];
+	inserted = malloc((MAX + 1) * (MAX + 1) * sizeof inserted[0][0]);
 	for (unsigned short x = 0; x < MAX; x++)
 	{
 		for (unsigned short y = 0; y < MAX; y++)
@@ -30,5 +31,6 @@ int main(int argc, char const *argv[])
 		}
 	}
 	flitdb_close(&flit);
+	free(inserted);
 	return 0;
 }

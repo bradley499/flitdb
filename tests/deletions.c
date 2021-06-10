@@ -11,7 +11,8 @@ int main(int argc, char const *argv[])
 {
 	flitdb *flit;
 	assert(flitdb_setup("./test.db", &flit, FLITDB_CREATE) == FLITDB_SUCCESS);
-	bool deleted[MAX][MAX] = {{false}};
+	bool (*deleted)[MAX];
+	deleted = malloc((MAX + 1) * (MAX + 1) * sizeof deleted[0][0]);
 	int deleted_amount = 0;
 	while (deleted_amount != MAX_DELETIONS)
 	{
@@ -25,5 +26,6 @@ int main(int argc, char const *argv[])
 		}
 	}
 	flitdb_close(&flit);
+	free(deleted);
 	return 0;
 }
