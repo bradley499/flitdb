@@ -10,27 +10,52 @@
 #include <stdlib.h>
 #include "flit.h"
 
-unsigned long long flitdb_max_size();
-
 // FlitDB database operations
 int flitdb_new(flitdb **handler);
 void flitdb_destroy(flitdb **handler);
 int flitdb_connection_setup(flitdb **handler, const char *filename, int flags);
 char *flitdb_get_err_message(flitdb **handler);
-int flitdb_read_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position);
+unsigned char flitdb_read_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position);
 void flitdb_clear_values(flitdb **handler);
-int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position);
-int flitdb_insert_value_int(flitdb **handler, int set_value);
-int flitdb_insert_value_float(flitdb **handler, float set_value);
-int flitdb_insert_value_char(flitdb **handler, char *set_value);
-int flitdb_insert_value_bool(flitdb **handler, bool set_value);
-int flitdb_insert_reset(flitdb **handler);
+unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position);
+unsigned char flitdb_insert_value_int(flitdb **handler, int set_value);
+unsigned char flitdb_insert_value_float(flitdb **handler, float set_value);
+unsigned char flitdb_insert_value_char(flitdb **handler, char *set_value);
+unsigned char flitdb_insert_value_bool(flitdb **handler, bool set_value);
+void flitdb_insert_reset(flitdb **handler);
 int flitdb_retrieve_value_int(flitdb **handler);
 long double flitdb_retrieve_value_double(flitdb **handler);
 float flitdb_retrieve_value_float(flitdb **handler);
 char *flitdb_retrieve_value_char(flitdb **handler);
 bool flitdb_retrieve_value_bool(flitdb **handler);
-int flitdb_retrieve_value_type(flitdb **handler);
+unsigned char flitdb_retrieve_value_type(flitdb **handler);
+void flitdb_error_state(flitdb **handler, unsigned char error_id);
+
+#define FLITDB_MAX_BUFFER_SIZE 1024
+#define FLITDB_MAX_CHAR_LENGTH 0xFFFF
+#define FLITDB_MAX_ERR_SIZE 100
+#define FLITDB_SEGMENT_SIZE 3
+#define FLITDB_PARTITION_SIZE 4
+#define FLITDB_PARTITION_AND_SEGMENT (FLITDB_SEGMENT_SIZE + FLITDB_PARTITION_SIZE)
+
+#ifndef FLITDB_SIZING_MODE
+	#error No sizing mode type was defined to FLITDB_SIZING_MODE
+#elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_TINY
+	#define FLITDB_COLUMN_POSITION_MAX 0x000F
+	#define FLITDB_ROW_POSITION_MAX 0x000F
+	typedef unsigned int flitdb_size_selection_type;
+#elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_SMALL
+	#define FLITDB_COLUMN_POSITION_MAX 0x00FF
+	#define FLITDB_ROW_POSITION_MAX 0x00FF
+	typedef unsigned int flitdb_size_selection_type;
+#elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_BIG
+	#define FLITDB_COLUMN_POSITION_MAX 0xFFFF
+	#define FLITDB_ROW_POSITION_MAX 0xFFFF
+	#define FLITDB_ALLOW_UNSAFE
+	typedef unsigned long long flitdb_size_selection_type;
+#else
+	#error An invalid sizing mode was attributed to FLITDB_SIZING_MODE
+#endif
 
 unsigned int flitdb_version_check()
 {
@@ -71,7 +96,7 @@ int flitdb_retrieved_type(flitdb **handler)
 
 int flitdb_insert_int(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, int value)
 {
-	int insert_success = flitdb_insert_value_int(handler, value);
+	unsigned char insert_success = flitdb_insert_value_int(handler, value);
 	if (insert_success != FLITDB_DONE)
 		return insert_success;
 	return flitdb_insert_at(handler, column_position, row_position);
@@ -88,7 +113,7 @@ int flitdb_insert(flitdb **handler, flitdb_column_sizing column_position, unsign
 
 int flitdb_insert_float(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, float value)
 {
-	int insert_success = flitdb_insert_value_float(handler, value);
+	unsigned char insert_success = flitdb_insert_value_float(handler, value);
 	if (insert_success != FLITDB_DONE)
 		return insert_success;
 	return flitdb_insert_at(handler, column_position, row_position);
@@ -105,7 +130,13 @@ int flitdb_insert(flitdb **handler, flitdb_column_sizing column_position, unsign
 
 int flitdb_insert_char(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, char *value)
 {
-	int insert_success = flitdb_insert_value_char(handler, value);
+	unsigned int value_length = strlen(value);
+	if (value_length > FLITDB_MAX_CHAR_LENGTH)
+	{
+		flitdb_error_state(handler, 11);
+		return FLITDB_ERROR;
+	}
+	unsigned char insert_success = flitdb_insert_value_char(handler, value);
 	if (insert_success != FLITDB_DONE)
 		return insert_success;
 	return flitdb_insert_at(handler, column_position, row_position);
@@ -122,10 +153,15 @@ int flitdb_insert(flitdb **handler, flitdb_column_sizing column_position, unsign
 
 int flitdb_insert_const_char(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position, const char *value)
 {
-	int value_length = strlen(value);
+	unsigned int value_length = strlen(value);
+	if (value_length > FLITDB_MAX_CHAR_LENGTH)
+	{
+		flitdb_error_state(handler, 11);
+		return FLITDB_ERROR;
+	}
 	char tmp_value[(value_length + 1)];
 	tmp_value[value_length] = '\0';
-	for (unsigned long long int i = value_length; i > 0; i--)
+	for (unsigned short i = value_length; i > 0; i--)
 		tmp_value[(i - 1)] = value[(i - 1)];
 	return flitdb_insert_char(handler, column_position, row_position, tmp_value);
 }
@@ -182,15 +218,6 @@ bool flitdb_retrieve_bool(flitdb **handler)
 	return flitdb_retrieve_value_bool(handler);
 }
 
-#define FLITDB_MAX_BUFFER_SIZE 1024
-#define FLITDB_MAX_CHAR_LENGTH 0xFFFF
-#define FLITDB_MAX_ERR_SIZE 100
-#define FLITDB_COLUMN_POSITION_MAX 0xFFFF
-#define FLITDB_ROW_POSITION_MAX 0xFFFF
-#define FLITDB_SEGMENT_SIZE 3
-#define FLITDB_PARTITION_SIZE 4
-#define FLITDB_PARTITION_AND_SEGMENT (FLITDB_SEGMENT_SIZE + FLITDB_PARTITION_SIZE)
-
 typedef struct flitdb
 {
 	char buffer[FLITDB_MAX_BUFFER_SIZE];
@@ -206,14 +233,16 @@ typedef struct flitdb
 	} value;
 	unsigned char value_type;
 	bool value_retrieved;
-	unsigned long long int size;
+	flitdb_size_selection_type size;
 	bool read_only;
+#ifdef FLITDB_ALLOW_UNSAFE
 	bool unsafe;
+#endif
 } flitdb;
 
 void flitdb_error_state(flitdb **handler, unsigned char error_id)
 {
-	char *errors[] = {
+	const char *errors[] = {
 		"\0",
 		"The minimum buffer size has encroached beyond suitable definitions\0",
 		"The maximum buffer size has encroached beyond suitable definitions\0",
@@ -226,7 +255,13 @@ void flitdb_error_state(flitdb **handler, unsigned char error_id)
 		"The database was opened in readonly mode\0",
 		"Data insertion avoided due to unexpected tennant\0",
 		"Data insertion avoided due to the length of a string being too large\0",
+#if FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_TINY
+		"The requested range was outside of the database's range (sizing mode parameter is: tiny)\0",
+#elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_SMALL
+		"The requested range was outside of the database's range (sizing mode parameter is: small)\0",
+#elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_BIG
 		"The requested range was outside of the database's range\0",
+#endif
 		"The database contracted a malformed structure declaration\0",
 		"An error occurred in attempting to read data from the database\0",
 		"An error occurred in attempting to write data to the database\0",
@@ -236,10 +271,11 @@ void flitdb_error_state(flitdb **handler, unsigned char error_id)
 		"Unable to allocate memory to retrieve value from the database\0",
 		"The database yielded an invalid datatype\0",
 		"The requested range must have a valid starting range of at least 1\0",
+		"Unable to enable unsafe mode due to compilation sizing mode parameters set\0",
 		"An unknown error occurred\0",
 	};
-	if (error_id > 22)
-		error_id = 22;
+	if (error_id > 23)
+		error_id = 23;
 	strncpy((*handler)->err_message, errors[error_id], FLITDB_MAX_ERR_SIZE);
 }
 
@@ -263,7 +299,9 @@ int flitdb_new(flitdb **handler)
 	(*handler)->configured = (FLITDB_MAX_BUFFER_SIZE < 50 || FLITDB_MAX_BUFFER_SIZE > 1024);
 	(*handler)->size = 0;
 	(*handler)->read_only = false;
+#ifdef FLITDB_ALLOW_UNSAFE
 	(*handler)->unsafe = false;
+#endif
 	(*handler)->value_type = 0;
 	(*handler)->value_retrieved = false;
 	(*handler)->file_descriptor = NULL;
@@ -287,10 +325,10 @@ void flitdb_destroy(flitdb **handler)
 	}
 }
 
-unsigned long long flitdb_max_size()
+flitdb_size_selection_type flitdb_max_size()
 {
 	// To calculate the maximum file size of what the database file can safely be read and written to
-	unsigned long long insertion_area[2] = {0, 0};
+	flitdb_size_selection_type insertion_area[2] = {0, 0};
 	insertion_area[0] = FLITDB_COLUMN_POSITION_MAX;
 	insertion_area[0] *= FLITDB_ROW_POSITION_MAX;
 	insertion_area[0] *= (FLITDB_MAX_CHAR_LENGTH - 1);
@@ -347,7 +385,14 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
 		return FLITDB_BUSY;
 	}
 	if ((flags & FLITDB_UNSAFE) == FLITDB_UNSAFE)  // Checks if unsafe operations have been attributed to this handler
+#ifdef FLITDB_ALLOW_UNSAFE
 		(*handler)->unsafe = true;				   // Unsafe mode is enabled
+#else
+	{
+		flitdb_error_state(handler, 22);
+		return FLITDB_ERROR;	
+	}
+#endif
 	else if ((*handler)->size > flitdb_max_size()) // Checks if the database file is bigger than the maximum size for safe operations
 	{
 		flitdb_error_state(handler, 7);
@@ -363,7 +408,7 @@ char *flitdb_get_err_message(flitdb **handler)
 	return (*handler)->err_message;							// Returns an error message (if set)
 }
 
-int flitdb_insert_value_int(flitdb **handler, int set_value)
+unsigned char flitdb_insert_value_int(flitdb **handler, int set_value)
 {
 	if (!(*handler)->configured)
 	{
@@ -386,7 +431,7 @@ int flitdb_insert_value_int(flitdb **handler, int set_value)
 	return FLITDB_DONE;
 }
 
-int flitdb_insert_value_float(flitdb **handler, float set_value)
+unsigned char flitdb_insert_value_float(flitdb **handler, float set_value)
 {
 	if (!(*handler)->configured)
 	{
@@ -409,7 +454,7 @@ int flitdb_insert_value_float(flitdb **handler, float set_value)
 	return FLITDB_DONE;
 }
 
-int flitdb_insert_value_char(flitdb **handler, char *set_value)
+unsigned char flitdb_insert_value_char(flitdb **handler, char *set_value)
 {
 	if (!(*handler)->configured)
 	{
@@ -426,18 +471,13 @@ int flitdb_insert_value_char(flitdb **handler, char *set_value)
 		flitdb_error_state(handler, 10);
 		return FLITDB_ERROR;
 	}
-	if (strlen(set_value) >= FLITDB_MAX_CHAR_LENGTH)
-	{
-		flitdb_error_state(handler, 11);
-		return FLITDB_ERROR;
-	}
 	flitdb_clear_values(handler);															// Clears the current insert values
 	(*handler)->value_type = FLITDB_CHAR;													// Sets the current insert value type to char array
 	strncpy((*handler)->value.char_value, set_value, sizeof((*handler)->value.char_value)); // Sets the current insert value
 	return FLITDB_DONE;
 }
 
-int flitdb_insert_value_bool(flitdb **handler, bool set_value)
+unsigned char flitdb_insert_value_bool(flitdb **handler, bool set_value)
 {
 	if (!(*handler)->configured)
 	{
@@ -460,10 +500,10 @@ int flitdb_insert_value_bool(flitdb **handler, bool set_value)
 	return FLITDB_DONE;
 }
 
-int flitdb_insert_reset(flitdb **handler)
+void flitdb_insert_reset(flitdb **handler)
 {
 	flitdb_clear_values(handler); // Clears the current insert values
-	return FLITDB_DONE;
+	return;
 }
 
 int flitdb_retrieve_value_int(flitdb **handler)
@@ -486,12 +526,12 @@ bool flitdb_retrieve_value_bool(flitdb **handler)
 	return (*handler)->value.bool_value; // Returns the value stored in the bool register
 }
 
-int flitdb_retrieve_value_type(flitdb **handler)
+unsigned char flitdb_retrieve_value_type(flitdb **handler)
 {
 	return (*handler)->value_type; // Returns the value type
 }
 
-int flitdb_read_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position)
+unsigned char flitdb_read_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position)
 {
 	if (!(*handler)->configured)
 	{
@@ -506,8 +546,8 @@ int flitdb_read_at(flitdb **handler, flitdb_column_sizing column_position, unsig
 	}
 	row_position -= 1;
 	bool store_response = false;
-	unsigned long long int offset = 0;
-	unsigned long long int skip_offset = 0;
+	flitdb_size_selection_type offset = 0;
+	flitdb_size_selection_type skip_offset = 0;
 	unsigned char read_length = FLITDB_PARTITION_AND_SEGMENT;
 	unsigned short row_count = 0;
 	unsigned short row_position_count = 0;
@@ -660,7 +700,7 @@ int flitdb_read_at(flitdb **handler, flitdb_column_sizing column_position, unsig
 	return FLITDB_NULL;
 }
 
-int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position)
+unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, unsigned short row_position)
 {
 	if (!(*handler)->configured)
 	{
@@ -673,16 +713,22 @@ int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, uns
 		flitdb_clear_values(handler);
 		return FLITDB_READONLY;
 	}
+
+#ifdef FLITDB_ALLOW_UNSAFE
 	if (!(*handler)->unsafe)
 	{
+#endif
 		if (column_position == 0 || column_position > FLITDB_COLUMN_POSITION_MAX || row_position == 0)
 		{
 			flitdb_error_state(handler, 12);
 			flitdb_clear_values(handler);
 			return FLITDB_RANGE;
 		}
+#ifdef FLITDB_ALLOW_UNSAFE
 	}
-	else if (column_position == 0 || row_position == 0)
+	else
+#endif
+	if (column_position == 0 || row_position == 0)
 	{
 		flitdb_error_state(handler, 21);
 		flitdb_clear_values(handler);
@@ -725,7 +771,7 @@ int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, uns
 	const unsigned short input_size_default = input_size;
 	if ((*handler)->value_type == FLITDB_CHAR)
 		input_size += sizeof(short);
-	unsigned long long int offset[6] = {0, 0, 0, 0, 0, 0};
+	flitdb_size_selection_type offset[6] = {0, 0, 0, 0, 0, 0};
 	unsigned short skip_offset[2] = {0, 0};
 	unsigned short skip_amount[2] = {0, 0};
 	unsigned short read_length[2] = {FLITDB_PARTITION_AND_SEGMENT, FLITDB_PARTITION_AND_SEGMENT};
@@ -918,7 +964,7 @@ int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, uns
 	struct relinquish_excersion
 	{
 		unsigned short size;
-		unsigned long long int position;
+		flitdb_size_selection_type position;
 		bool use;
 	};
 	struct relinquish_excersion info_skip_offset;
@@ -964,8 +1010,8 @@ int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, uns
 		if (offset[1] < (*handler)->size)
 		{
 			// Move segments after offset position
-			unsigned long long int buffer_delimitation_point = (offset[1]);
-			unsigned long long int buffer_offset = (((*handler)->size - offset[1]) % FLITDB_MAX_BUFFER_SIZE);
+			flitdb_size_selection_type buffer_delimitation_point = (offset[1]);
+			flitdb_size_selection_type buffer_offset = (((*handler)->size - offset[1]) % FLITDB_MAX_BUFFER_SIZE);
 			if (buffer_offset == 0)
 				buffer_offset = FLITDB_MAX_BUFFER_SIZE;
 			unsigned short buffer_size = buffer_offset;
@@ -1001,7 +1047,7 @@ int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, uns
 			offset[3] = offset[1]; // Store beginging of segment
 			offset[1] = offset[4]; // Set to beginging of segment
 		}
-		unsigned long long int deletion_point[2] = {
+		flitdb_size_selection_type deletion_point[2] = {
 			(offset[1] + FLITDB_SEGMENT_SIZE + current_length[0]), // End point of current
 			(offset[1] + FLITDB_SEGMENT_SIZE + offset_sizing),	   // New end point position
 		};
@@ -1038,7 +1084,7 @@ int flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_position, uns
 		else if (offset[0] == offset[1])				// Segment declaration is at beginning of partition
 			deletion_point[1] += FLITDB_PARTITION_SIZE; // Account for partition declaration
 		unsigned short buffer_size = FLITDB_MAX_BUFFER_SIZE;
-		unsigned long long int buffer_offset = 0;
+		flitdb_size_selection_type buffer_offset = 0;
 		bool writable = (deletion_point[0] != (*handler)->size);
 		while (writable)
 		{

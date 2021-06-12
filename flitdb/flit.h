@@ -20,6 +20,14 @@
 #define FLITDB_UNSAFE       16 // Discard all safety protocols to allow for larger database
 #define FLITDB_VERSION  0xc8ae // The current FlitDB version magic number
 
+// Database sizing options
+#define FLITDB_SIZING_MODE_TINY  1 // Handle databases up to 14.74 megabytes in size
+#define FLITDB_SIZING_MODE_SMALL 2 // Handle databases up to 4.26 gigabytes in size
+#define FLITDB_SIZING_MODE_BIG   3 // Handle databases up to 281.470 terabytes in size
+
+// Database sizing selection
+#define FLITDB_SIZING_MODE FLITDB_SIZING_MODE_BIG // The sizing mode for this compilation
+
 #ifdef __cplusplus
 #define flitdb_extern extern "C"
 #else
@@ -27,7 +35,11 @@
 #endif
 
 typedef struct flitdb flitdb;
-typedef unsigned long long int flitdb_column_sizing;
+#if FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_BIG
+typedef unsigned long long flitdb_column_sizing;
+#else
+typedef unsigned short flitdb_column_sizing;
+#endif
 
 /**
  * @brief Configures the FlitDB handler to point to and operate on a specific file
