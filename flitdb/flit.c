@@ -224,7 +224,7 @@ typedef struct flitdb
 	bool configured;
 	FILE *file_descriptor;
 	char err_message[FLITDB_MAX_ERR_SIZE];
-	struct value
+	union value
 	{
 		int int_value;
 		float float_value;
@@ -283,9 +283,6 @@ void flitdb_clear_values(flitdb **handler)
 {
 	// Resets all the data associated with the current insert/retrieval
 	(*handler)->value.int_value = 0;
-	(*handler)->value.float_value = 0;
-	(*handler)->value.bool_value = false;
-	memset((*handler)->value.char_value, 0, sizeof((*handler)->value.char_value));
 	(*handler)->value_type = FLITDB_NULL;
 	(*handler)->value_retrieved = false;
 	memset((*handler)->buffer, 0, sizeof((*handler)->buffer));
@@ -508,22 +505,30 @@ void flitdb_insert_reset(flitdb **handler)
 
 int flitdb_retrieve_value_int(flitdb **handler)
 {
-	return (*handler)->value.int_value; // Returns the value stored in the int register
+	if ((*handler)->value_type == FLITDB_INTEGER)
+		return (*handler)->value.int_value; // Returns the value stored in the int register
+	return 0;
 }
 
 float flitdb_retrieve_value_float(flitdb **handler)
 {
-	return (*handler)->value.float_value; // Returns the value stored in the float register
+	if ((*handler)->value_type == FLITDB_FLOAT)
+		return (*handler)->value.float_value; // Returns the value stored in the float register
+	return 0;
 }
 
 char *flitdb_retrieve_value_char(flitdb **handler)
 {
-	return (*handler)->value.char_value; // Returns the value stored in the char register
+	if ((*handler)->value_type == FLITDB_CHAR)
+		return (*handler)->value.char_value; // Returns the value stored in the char register
+	return NULL;
 }
 
 bool flitdb_retrieve_value_bool(flitdb **handler)
 {
-	return (*handler)->value.bool_value; // Returns the value stored in the bool register
+	if ((*handler)->value_type == FLITDB_BOOL)
+		return (*handler)->value.bool_value; // Returns the value stored in the bool register
+	return false;
 }
 
 unsigned char flitdb_retrieve_value_type(flitdb **handler)
