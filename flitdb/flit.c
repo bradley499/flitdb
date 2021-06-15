@@ -43,16 +43,19 @@ void flitdb_error_state(flitdb **handler, unsigned char error_id);
 #elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_TINY
 	#define FLITDB_COLUMN_POSITION_MAX 0x000F
 	#define FLITDB_ROW_POSITION_MAX 0x000F
-	typedef unsigned int flitdb_size_selection_type;
+	typedef unsigned short flitdb_size_selection_type;
+	typedef unsigned int flitdb_sizing_max;
 #elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_SMALL
 	#define FLITDB_COLUMN_POSITION_MAX 0x00FF
 	#define FLITDB_ROW_POSITION_MAX 0x00FF
 	typedef unsigned int flitdb_size_selection_type;
+	typedef unsigned int flitdb_sizing_max;
 #elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_BIG
 	#define FLITDB_COLUMN_POSITION_MAX 0xFFFF
 	#define FLITDB_ROW_POSITION_MAX 0xFFFF
 	#define FLITDB_ALLOW_UNSAFE
 	typedef unsigned long long flitdb_size_selection_type;
+	typedef unsigned long long flitdb_sizing_max;
 #else
 	#error An invalid sizing mode was attributed to FLITDB_SIZING_MODE
 #endif
@@ -271,11 +274,12 @@ void flitdb_error_state(flitdb **handler, unsigned char error_id)
 		"Unable to allocate memory to retrieve value from the database\0",
 		"The database yielded an invalid datatype\0",
 		"The requested range must have a valid starting range of at least 1\0",
-		"Unable to enable unsafe mode due to compilation sizing mode parameters set\0",
+		"The database declares ranges that exceed the current sizing mode parameter set\0",
+		"Unable to enable unsafe mode due to compilation sizing mode parameter set\0",
 		"An unknown error occurred\0",
 	};
-	if (error_id > 23)
-		error_id = 23;
+	if (error_id > 24)
+		error_id = 24;
 	strncpy((*handler)->err_message, errors[error_id], FLITDB_MAX_ERR_SIZE);
 }
 
@@ -322,17 +326,17 @@ void flitdb_destroy(flitdb **handler)
 	}
 }
 
-flitdb_size_selection_type flitdb_max_size()
+flitdb_sizing_max flitdb_max_size()
 {
 	// To calculate the maximum file size of what the database file can safely be read and written to
-	flitdb_size_selection_type insertion_area[2] = {0, 0};
+	flitdb_sizing_max insertion_area[2] = {0, 0};
 	insertion_area[0] = FLITDB_COLUMN_POSITION_MAX;
 	insertion_area[0] *= FLITDB_ROW_POSITION_MAX;
 	insertion_area[0] *= (FLITDB_MAX_CHAR_LENGTH - 1);
 	if (FLITDB_ROW_POSITION_MAX > 1)
 	{
 		insertion_area[1] = FLITDB_COLUMN_POSITION_MAX;
-		insertion_area[1] *= (FLITDB_ROW_POSITION_MAX - 1);
+		insertion_area[1] *= FLITDB_ROW_POSITION_MAX;
 		insertion_area[1] *= FLITDB_SEGMENT_SIZE;
 	}
 	return (insertion_area[0] + insertion_area[1] + (FLITDB_COLUMN_POSITION_MAX * FLITDB_PARTITION_AND_SEGMENT));
@@ -386,7 +390,7 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
 		(*handler)->unsafe = true;				   // Unsafe mode is enabled
 #else
 	{
-		flitdb_error_state(handler, 22);
+		flitdb_error_state(handler, 23);
 		return FLITDB_ERROR;	
 	}
 #endif
@@ -544,7 +548,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_sizing column_posit
 		return FLITDB_ERROR;
 	}
 	flitdb_clear_values(handler);
-	if (column_position == 0 || column_position > FLITDB_COLUMN_POSITION_MAX || row_position == 0)
+	if (column_position == 0 || column_position > FLITDB_COLUMN_POSITION_MAX || row_position == 0 || (row_position - 1) > FLITDB_ROW_POSITION_MAX)
 	{
 		flitdb_error_state(handler, 12);
 		return FLITDB_RANGE;
@@ -555,7 +559,6 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_sizing column_posit
 	flitdb_size_selection_type skip_offset = 0;
 	unsigned char read_length = FLITDB_PARTITION_AND_SEGMENT;
 	unsigned short row_count = 0;
-	unsigned short row_position_count = 0;
 	for (;;)
 	{
 		if ((offset + read_length) >= (*handler)->size)
@@ -577,7 +580,20 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_sizing column_posit
 				flitdb_error_state(handler, 14);
 				return FLITDB_ERROR;
 			}
-			skip_offset += (skip_amount + 1);
+			skip_offset += skip_amount;
+			if (skip_offset >= FLITDB_COLUMN_POSITION_MAX)
+			{
+#ifdef FLITDB_ALLOW_UNSAFE
+				if (!(*handler)->unsafe)
+				{
+#endif
+					flitdb_error_state(handler, 22);
+					return FLITDB_RANGE;
+#ifdef FLITDB_ALLOW_UNSAFE
+				}
+#endif
+			}
+			skip_offset += 1;
 			if (skip_offset > column_position)
 				return FLITDB_NULL;
 			if (fread(&row_count, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
@@ -585,8 +601,12 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_sizing column_posit
 				flitdb_error_state(handler, 14);
 				return FLITDB_ERROR;
 			}
+			if (row_count > FLITDB_ROW_POSITION_MAX)
+			{
+				flitdb_error_state(handler, 22);
+				return FLITDB_RANGE;
+			}
 			row_count += 1;
-			row_position_count = 0;
 		}
 		unsigned char set_read_length = FLITDB_PARTITION_AND_SEGMENT;
 		if (skip_offset == column_position)
@@ -602,10 +622,14 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_sizing column_posit
 				store_response = true;
 				row_count = 0;
 			}
+			else if (position > FLITDB_ROW_POSITION_MAX)
+			{
+				flitdb_error_state(handler, 22);
+				return FLITDB_RANGE;
+			}
 		}
 		else
 			fseek((*handler)->file_descriptor, sizeof(short), SEEK_CUR);
-		row_position_count += 1;
 		if (row_count > 1)
 		{
 			row_count -= 1;
@@ -723,7 +747,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_pos
 	if (!(*handler)->unsafe)
 	{
 #endif
-		if (column_position == 0 || column_position > FLITDB_COLUMN_POSITION_MAX || row_position == 0)
+		if (column_position == 0 || column_position > FLITDB_COLUMN_POSITION_MAX || row_position == 0 || (row_position - 1) > FLITDB_ROW_POSITION_MAX)
 		{
 			flitdb_error_state(handler, 12);
 			flitdb_clear_values(handler);
@@ -756,7 +780,6 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_pos
 		free(input_buffer);
 		break;
 	case FLITDB_CHAR:
-	{
 		input_size = strlen((*handler)->value.char_value);
 		if (input_size == 0)
 		{
@@ -772,12 +795,11 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_pos
 		}
 		break;
 	}
-	}
 	const unsigned short input_size_default = input_size;
 	if ((*handler)->value_type == FLITDB_CHAR)
 		input_size += sizeof(short);
 	flitdb_size_selection_type offset[6] = {0, 0, 0, 0, 0, 0};
-	unsigned short skip_offset[2] = {0, 0};
+	flitdb_size_selection_type skip_offset[2] = {0, 0};
 	unsigned short skip_amount[2] = {0, 0};
 	unsigned short read_length[2] = {FLITDB_PARTITION_AND_SEGMENT, FLITDB_PARTITION_AND_SEGMENT};
 	signed short row_count[3] = {0, 0, 0};
@@ -830,11 +852,30 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_pos
 					return FLITDB_ERROR;
 				}
 				skip_offset[1] = skip_offset[0];
-				skip_offset[0] += (skip_amount[0] + 1);
+				skip_offset[0] += skip_amount[0];
+
+			if (skip_offset[0] >= FLITDB_COLUMN_POSITION_MAX)
+			{
+#ifdef FLITDB_ALLOW_UNSAFE
+				if (!(*handler)->unsafe)
+				{
+#endif
+					flitdb_error_state(handler, 22);
+					return FLITDB_RANGE;
+#ifdef FLITDB_ALLOW_UNSAFE
+				}
+#endif
+			}
+				skip_offset[0] += 1;
 				if (fread(&row_count[0], 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 				{
 					flitdb_error_state(handler, 14);
 					return FLITDB_ERROR;
+				}
+				if (row_count[0] > FLITDB_ROW_POSITION_MAX)
+				{
+					flitdb_error_state(handler, 22);
+					return FLITDB_RANGE;
 				}
 				row_count[2] = row_count[1];
 				row_count[0] += 1;
@@ -893,6 +934,11 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_sizing column_pos
 					offset[1] = offset[2];		 // Beginning of segment
 					row_count[0] = row_count[1]; // Set row count to total rows
 					break;
+				}
+				else if (position > FLITDB_ROW_POSITION_MAX)
+				{
+					flitdb_error_state(handler, 22);
+					return FLITDB_RANGE;
 				}
 				else if (row_count[0] >= 1 && position > row_position) // Passed target row (doesn't exist) but additional rows exist
 				{
