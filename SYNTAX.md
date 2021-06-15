@@ -2,23 +2,23 @@
 ## Syntax
 | API | Parameter | Parameter | Parameter | Parameter | API Version |
 |-|-|-|-|-|-|
-|[`flitdb_setup`](#flitdb_setup)|`filename`|[`&handler`](#handler)|`flags`||c8ae|
-|[`flitdb_close`](#flitdb_close)|[`&handler`](#handler)||||c8ae|
-|[`flitdb_version_check`](#flitdb_version_check)|||||c8ae|
-|[`flitdb_errmsg`](#flitdb_errmsg)|[`&handler`](#handler)||||c8ae|
-|[`flitdb_extract`](#flitdb_extract)|[`&handler`](#handler)|`column_position`|`row_position`||c8ae|
-|[`flitdb_retrieved_type`](#flitdb_retrieved_type)|[`&handler`](#handler)||||c8ae|
-|[`flitdb_insert`](#flitdb_insert)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|c8ae|
-|[`flitdb_insert_int`](#flitdb_insert_int)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|c8ae|
-|[`flitdb_insert_float`](#flitdb_insert_float)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|c8ae|
-|[`flitdb_insert_char`](#flitdb_insert_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|c8ae|
-|[`flitdb_insert_const_char`](#flitdb_insert_const_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|c8ae|
-|[`flitdb_insert_bool`](#flitdb_insert_bool)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|c8ae|
-|[`flitdb_delete`](#flitdb_delete)|[`&handler`](#handler)|`column_position`|`row_position`||c8ae|
-|[`flitdb_retrieve_int`](#flitdb_retrieve_int)|[`&handler`](#handler)||||c8ae|
-|[`flitdb_retrieve_float`](#flitdb_retrieve_float)|[`&handler`](#handler)||||c8ae|
-|[`flitdb_retrieve_char`](#flitdb_retrieve_char)|[`&handler`](#handler)||||c8ae|
-|[`flitdb_retrieve_bool`](#flitdb_retrieve_bool)|[`&handler`](#handler)||||c8ae|
+|[`flitdb_setup`](#flitdb_setup)|`filename`|[`&handler`](#handler)|`flags`||efc7|
+|[`flitdb_close`](#flitdb_close)|[`&handler`](#handler)||||efc7|
+|[`flitdb_version_check`](#flitdb_version_check)|||||efc7|
+|[`flitdb_errmsg`](#flitdb_errmsg)|[`&handler`](#handler)||||efc7|
+|[`flitdb_extract`](#flitdb_extract)|[`&handler`](#handler)|`column_position`|`row_position`||efc7|
+|[`flitdb_retrieved_type`](#flitdb_retrieved_type)|[`&handler`](#handler)||||efc7|
+|[`flitdb_insert`](#flitdb_insert)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
+|[`flitdb_insert_int`](#flitdb_insert_int)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
+|[`flitdb_insert_float`](#flitdb_insert_float)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
+|[`flitdb_insert_char`](#flitdb_insert_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
+|[`flitdb_insert_const_char`](#flitdb_insert_const_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
+|[`flitdb_insert_bool`](#flitdb_insert_bool)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
+|[`flitdb_delete`](#flitdb_delete)|[`&handler`](#handler)|`column_position`|`row_position`||efc7|
+|[`flitdb_retrieve_int`](#flitdb_retrieve_int)|[`&handler`](#handler)||||efc7|
+|[`flitdb_retrieve_float`](#flitdb_retrieve_float)|[`&handler`](#handler)||||efc7|
+|[`flitdb_retrieve_char`](#flitdb_retrieve_char)|[`&handler`](#handler)||||efc7|
+|[`flitdb_retrieve_bool`](#flitdb_retrieve_bool)|[`&handler`](#handler)||||efc7|
 ## APIs
 ### flitdb_setup
 Opens database through a FlitDB connection for operations. This **must** be done in order to use any subsequent FlitDB API, as the database must be accessible in order to perform any actions to it. The parameters used in conjunction with this API are as follows:
@@ -67,9 +67,9 @@ Attempts to find a value stored in the database - through a FlitDB connection - 
 
 The parameters defined are as follows:
 
- - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long long`, or `unsigned short` dependant on the compilation [sizing mode](#sizing-mode).
 
- - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`.
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`, or `unsigned long long` dependant on the compilation [sizing mode](#sizing-mode).
 
  - `handler` - See [Common Parameters](#common-parameters).
 
@@ -78,6 +78,7 @@ This function returns the following *Integer* values:
  - [FLITDB_RANGE](#value-types)
  - [FLITDB_CORRUPT](#value-types)
  - [FLITDB_NULL](#value-types)
+ - [FLITDB_DONE](#value-types)
 
 ### flitdb_retrieved_type
 Returns the data type of any value that was extracted using the [`flitdb_extract`](#flitdb_extract) function.
@@ -101,9 +102,9 @@ Attempts to write a `value` into the database - through a FlitDB connection - at
 
 The parameters defined are as follows:
 
- - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long long`, or `unsigned short` dependant on the compilation [sizing mode](#sizing-mode).
 
- - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`.
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`, or `unsigned long long` dependant on the compilation [sizing mode](#sizing-mode).
 
  - `handler` - See [Common Parameters](#common-parameters).
 
@@ -128,9 +129,9 @@ Attempts to write an integer `value` into the database - through a FlitDB connec
 
 The parameters defined are as follows:
 
- - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long long`, or `unsigned short` dependant on the compilation [sizing mode](#sizing-mode).
 
- - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`.
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`, or `unsigned long long` dependant on the compilation [sizing mode](#sizing-mode).
 
  - `handler` - See [Common Parameters](#common-parameters).
 
@@ -149,10 +150,10 @@ Attempts to write a float `value` into the database - through a FlitDB connectio
 
 The parameters defined are as follows:
 
- - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long long`, or `unsigned short` dependant on the compilation [sizing mode](#sizing-mode).
 
- - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`.
-
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`, or `unsigned long long` dependant on the compilation [sizing mode](#sizing-mode).
+ 
  - `handler` - See [Common Parameters](#common-parameters).
 
  - `value` - The float value that is to be stored within the database. Expected data type is `float`.
@@ -170,9 +171,9 @@ Attempts to write a *char pointer* (char \*) `value` into the database - through
 
 The parameters defined are as follows:
 
- - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long long`, or `unsigned short` dependant on the compilation [sizing mode](#sizing-mode).
 
- - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`.
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`, or `unsigned long long` dependant on the compilation [sizing mode](#sizing-mode).
 
  - `handler` - See [Common Parameters](#common-parameters).
 
@@ -191,9 +192,9 @@ Attempts to write a *const char pointer* (char \*) `value` into the database - t
 
 The parameters defined are as follows:
 
- - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long long`, or `unsigned short` dependant on the compilation [sizing mode](#sizing-mode).
 
- - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`.
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`, or `unsigned long long` dependant on the compilation [sizing mode](#sizing-mode).
 
  - `handler` - See [Common Parameters](#common-parameters).
 
@@ -212,9 +213,9 @@ Attempts to write a boolean `value` into the database - through a FlitDB connect
 
 The parameters defined are as follows:
 
- - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long long`, or `unsigned short` dependant on the compilation [sizing mode](#sizing-mode).
 
- - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`.
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`, or `unsigned long long` dependant on the compilation [sizing mode](#sizing-mode).
 
  - `handler` - See [Common Parameters](#common-parameters).
 
@@ -233,9 +234,9 @@ Attempts to delete a value (if present) at the provided coordinates within the d
 
 The parameters defined are as follows:
 
- - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long int`.
+ - `column_position` - The numeric position of the column in which to access. Expected data type is `unsigned long long`, or `unsigned short` dependant on the compilation [sizing mode](#sizing-mode).
 
- - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`.
+ - `row_position` - The numeric position of the row in which to access. Expected data type is `unsigned short`, or `unsigned long long` dependant on the compilation [sizing mode](#sizing-mode).
 
  - `handler` - See [Common Parameters](#common-parameters).
 
@@ -283,7 +284,7 @@ The parameter defined is as follows:
 
 This function returns a *Boolean* value.
 
-### Common Parameters
+## Common Parameters
 #### `handler`
 A handler is a FlitDB object, which is used to perform operations on the database. A FlitDB object is very easy to create, all you need to do is the following:
 
@@ -292,6 +293,15 @@ A handler is a FlitDB object, which is used to perform operations on the databas
 With `flit` being any name that you wish, as it is a variable name. You do not need to declare the FlitDB object as being initialized with any value, as that is handled all by the function [`flitdb_setup`](#flitdb_setup), allowing for a easy creation and deletion - when used with [`flitdb_close`](#flitdb_close).
 
 **NOTE:** The FlitDB object is expected to be passed by reference to all functions (example: `&flit`).
+
+## Compilation Options
+Within the file [`flit.h`](flitdb/flit.h), you can limit set the compilation value of `FLITDB_SIZING_MODE` to one of three different values; this definition of a sizing mode is put in place to further limit the amount of data that FlitDB will have access to.
+### Sizing mode
+|Mode|Limitations|
+|-|-|
+|FLITDB_SIZING_MODE_BIG|Default - allows for writing up to 65536 columns (and even more with [`FLITDB_UNSAFE`](#access-flags)), and up to 65536 rows.|
+|FLITDB_SIZING_MODE_SMALL|Allows up to 256 columns and rows. Cannot be used in conjunction with [`FLITDB_UNSAFE`](#access-flags).|
+|FLITDB_SIZING_MODE_TINY|Allows up to 16 columns and rows. Cannot be used in conjunction with [`FLITDB_UNSAFE`](#access-flags).|
 
 ## FlitDB constants
 ### Access Flags
