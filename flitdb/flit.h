@@ -238,14 +238,6 @@ flitdb_extern int flitdb_insert_bool(flitdb **handler, flitdb_column_row_sizing 
 flitdb_extern int flitdb_delete(flitdb **handler, flitdb_column_row_sizing column_position, flitdb_column_row_sizing row_position);
 
 /**
- * @brief Retrieve an long (signed long long int) from the extracted value from the FlitDB handler
- * 
- * @param handler The FlitDB handler 
- * @return signed long long int 
- */
-flitdb_extern signed long long int flitdb_retrieve_long(flitdb **handler);
-
-/**
  * @brief Retrieve an integer (int) from the extracted value from the FlitDB handler
  * 
  * @param handler The FlitDB handler 
