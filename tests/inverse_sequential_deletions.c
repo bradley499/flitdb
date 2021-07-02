@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <assert.h>
-#include <flit.h>
+#include "flit.h"
 
 #define MAX 99
 #define MAX_INSERTIONS (MAX * MAX)

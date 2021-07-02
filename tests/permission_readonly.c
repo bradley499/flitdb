@@ -2,8 +2,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <assert.h>
-#include <flit.h>
-
+#include "flit.h"
 
 int main(int argc, char const *argv[])
 {
