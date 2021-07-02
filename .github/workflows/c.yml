@@ -1,0 +1,28 @@
+name: C build
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        compiler: [ gcc-10 ]
+        include:
+          - os: ubuntu-latest
+            target: Linux
+          - os: macos-latest
+            target: Macos
+    env:
+      working-directory: ./tests
+    steps:
+    - uses: actions/checkout@v2
+    - name: make
+      run: make
+      env:
+        CC: ${{ matrix.compiler }}
+      working-directory: ${{env.working-directory}}
+    - name: make test
+      run: make test_silent
+      working-directory: ${{env.working-directory}}
