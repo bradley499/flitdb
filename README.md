@@ -1,4 +1,6 @@
 ![FlitDB](./assets/banner.png?raw=true)
+[![Version](https://img.shields.io/github/v/release/bradley499/flitdb.svg)](https://github.com/bradley499/flitdb/releases) [![C build](https://github.com/bradley499/flitdb/actions/workflows/c.yml/badge.svg)](https://github.com/bradley499/flitdb/actions/workflows/c.yml) [![GitHub license](https://img.shields.io/github/license/bradley499/flitdb.svg)](https://github.com/bradley499/flitdb/blob/master/LICENSE)
+
 
 <p align="center"><i><b>Verb</b> ~ Move swiftly and lightly.</i></p>
 
