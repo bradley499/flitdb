@@ -1,4 +1,4 @@
-name: C build
+name: C build & tests
 on:
   pull_request:
     branches: [ main ]
