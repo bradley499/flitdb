@@ -7,7 +7,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/stat.h>
 #include "flit.h"
 
 // FlitDB database operations
@@ -37,6 +36,12 @@ void flitdb_error_state(flitdb **handler, unsigned char error_id);
 #define FLITDB_SEGMENT_SIZE 3
 #define FLITDB_PARTITION_SIZE 4
 #define FLITDB_PARTITION_AND_SEGMENT (FLITDB_SEGMENT_SIZE + FLITDB_PARTITION_SIZE)
+
+#define FLITDB_READ_INT 1
+#define FLITDB_READ_FLOAT 2
+#define FLITDB_READ_CHAR 3
+#define FLITDB_READ_BOOL_TRUE 4
+#define FLITDB_READ_BOOL_FALSE 5
 
 #ifndef FLITDB_SIZING_MODE
 #error No sizing mode type was defined to FLITDB_SIZING_MODE
@@ -671,7 +676,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 		(*handler)->value_retrieved = store_response;
 		switch (data_type)
 		{
-		case 1:
+		case FLITDB_READ_INT:
 			if (store_response)
 			{
 				(*handler)->value_type = FLITDB_INTEGER;
@@ -685,7 +690,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			data_type = FLITDB_INTEGER;
 			response_length = sizeof(int);
 			break;
-		case 2:
+		case FLITDB_READ_FLOAT:
 			if (store_response)
 			{
 				(*handler)->value_type = FLITDB_FLOAT;
@@ -699,7 +704,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			data_type = FLITDB_FLOAT;
 			response_length = sizeof(float);
 			break;
-		case 3:
+		case FLITDB_READ_CHAR:
 			data_type = FLITDB_CHAR;
 			if (fread(&response_length, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 			{
@@ -733,12 +738,12 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			}
 			response_length += (1 + sizeof(short));
 			break;
-		case 4:
-		case 5:
+		case FLITDB_READ_BOOL_TRUE:
+		case FLITDB_READ_BOOL_FALSE:
 			if (store_response)
 			{
 				(*handler)->value_type = FLITDB_BOOL;
-				(*handler)->value.bool_value = (data_type == 4);
+				(*handler)->value.bool_value = (data_type == FLITDB_READ_BOOL_TRUE);
 				return FLITDB_DONE;
 			}
 			data_type = FLITDB_BOOL;
@@ -941,13 +946,13 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 					current_length[1] = 1;
 					switch (current_type)
 					{
-					case 1:
+					case FLITDB_READ_INT:
 						current_length[0] = sizeof(int);
 						break;
-					case 2:
+					case FLITDB_READ_FLOAT:
 						current_length[0] = sizeof(float);
 						break;
-					case 3:
+					case FLITDB_READ_CHAR:
 						if (fread(&current_length[0], 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 						{
 							flitdb_error_state(handler, 14);
@@ -955,8 +960,8 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 						}
 						current_length[0] += (1 + sizeof(short));
 						break;
-					case 4:
-					case 5:
+					case FLITDB_READ_BOOL_TRUE:
+					case FLITDB_READ_BOOL_FALSE:
 						break;
 					default:
 						flitdb_error_state(handler, 20);
@@ -1016,13 +1021,13 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 			}
 			switch (current_type)
 			{
-			case 1:
+			case FLITDB_READ_INT:
 				current_length[0] = sizeof(int);
 				break;
-			case 2:
+			case FLITDB_READ_FLOAT:
 				current_length[0] = sizeof(float);
 				break;
-			case 3:
+			case FLITDB_READ_CHAR:
 				if (fread(&current_length[0], 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 				{
 					flitdb_error_state(handler, 14);
@@ -1030,8 +1035,8 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				}
 				current_length[0] += (1 + sizeof(short));
 				break;
-			case 4:
-			case 5:
+			case FLITDB_READ_BOOL_TRUE:
+			case FLITDB_READ_BOOL_FALSE:
 				break;
 			default:
 				flitdb_error_state(handler, 20);
@@ -1231,7 +1236,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		info_skip_offset.use = true;
 		if (row_count[0] == 0)
 		{
-			if (current_length[0] != 0)
+			if (current_length[0] != 0 || current_length[1] == 1)		   // If empty or existing
 				info_skip_offset.use = false;							   // Do not update next occuring skip offset (as it is already correct)
 			else if (offset[0] != 0)									   // if other partitions exists prior to insertion point
 				skip_amount[0] = (column_position - (skip_offset[0] + 1)); // Calculate insertion difference for skip amount
