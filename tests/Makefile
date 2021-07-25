@@ -18,6 +18,7 @@ build:
 	$(CC) $(ARGS) -c deletions.c
 	$(CC) $(ARGS) -c sequential_deletions.c
 	$(CC) $(ARGS) -c inverse_sequential_deletions.c
+	$(CC) $(ARGS) -c alterations.c
 	$(CC) $(ARGS) -c permission_create.c
 	$(CC) $(ARGS) -c permission_readonly.c
 	$(CC) $(ARGS) -c flit.c
@@ -27,6 +28,7 @@ build:
 	$(CC) $(ARGS) deletions.o flit.o -o $(BUILD_DIR)/test_delete
 	$(CC) $(ARGS) sequential_deletions.o flit.o -o $(BUILD_DIR)/test_sequential_delete
 	$(CC) $(ARGS) inverse_sequential_deletions.o flit.o -o $(BUILD_DIR)/test_inverse_sequential_delete
+	$(CC) $(ARGS) alterations.o flit.o -o $(BUILD_DIR)/test_alterations
 	$(CC) $(ARGS) permission_create.o flit.o -o $(BUILD_DIR)/test_permission_create
 	$(CC) $(ARGS) permission_readonly.o flit.o -o $(BUILD_DIR)/test_permission_readonly
 
@@ -45,6 +47,8 @@ test:
 	@cd $(BUILD_DIR);./test_inverse_sequential_inserts > /dev/null 2>&1 && echo "~ Success" || echo "~ Failed"
 	@echo -n "Inverse sequential deletions "
 	@cd $(BUILD_DIR);./test_inverse_sequential_delete > /dev/null 2>&1 && echo "~ Success" || echo "~ Failed"
+	@echo -n "Alternating values           "
+	@cd $(BUILD_DIR);./test_alterations > /dev/null 2>&1 && echo "~ Success" || echo "~ Failed"
 	@echo -n "Permission create            "
 	@cd $(BUILD_DIR);./test_permission_create > /dev/null 2>&1 && echo "~ Success" || echo "~ Failed"
 	@echo -n "Permission readonly          "
