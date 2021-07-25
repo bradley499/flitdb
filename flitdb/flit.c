@@ -588,7 +588,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 	unsigned short row_count = 0;
 	for (;;)
 	{
-		if ((offset + read_length) >= (*handler)->size)
+		if ((offset + read_length) > (*handler)->size)
 		{
 			if ((offset + read_length) > ((*handler)->size + read_length))
 			{
@@ -1258,7 +1258,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 			info_input_buffer.position = (offset[1] + 3);
 		info_input_buffer.use = ((*handler)->value_type != FLITDB_BOOL);
 		info_row_count.use = true;
-		if (current_length[0] == 0 && row_count[0] == 0 && current_length[0] != input_size) // Partition is new, so update skip offset for next partition
+		if (current_length[0] == 0 && current_length[1] == 0 && row_count[0] == 0 && (current_length[0] != input_size || (*handler)->value_type == FLITDB_BOOL)) // Partition is new, so update skip offset for next partition
 		{
 			offset[0] += (FLITDB_PARTITION_AND_SEGMENT + input_size);
 			if (offset[0] != (*handler)->size)
