@@ -19,7 +19,7 @@ build:
 	@$(GCC) $(OBJ_ARGS) -c $(SRC)
 	@echo " done"
 	@echo -n "Generating shared library..."
-	@$(GCC) -s -shared -o $(LIB) $(OBJ)
+	@$(GCC) -fPIC -s -shared -o $(LIB) $(OBJ)
 	@echo " done"
 
 update:
