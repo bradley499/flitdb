@@ -31,7 +31,7 @@ unsigned char flitdb_retrieve_value_type(flitdb **handler);
 void flitdb_error_state(flitdb **handler, unsigned char error_id);
 
 #define FLITDB_MAX_BUFFER_SIZE 1024
-#define FLITDB_MAX_CHAR_LENGTH 0xFFFF
+#define FLITDB_MAX_CHAR_LENGTH (0xFFFF - sizeof(short))
 #define FLITDB_MAX_ERR_SIZE 100
 #define FLITDB_SEGMENT_SIZE 3
 #define FLITDB_PARTITION_SIZE 4
@@ -1088,15 +1088,14 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 	if (input_size > current_length[0] || (current_length[1] == 0 && (*handler)->value_type != FLITDB_NULL))
 	{
 		unsigned short offset_sizing = (input_size - current_length[0]);
+		unsigned char additional_offset = 0;
 		if (current_length[1] == 0)
 		{
 			if (row_count[0] == 0)
-				offset_sizing += FLITDB_PARTITION_AND_SEGMENT;
+				additional_offset = FLITDB_PARTITION_AND_SEGMENT;
 			else
-				offset_sizing += FLITDB_SEGMENT_SIZE;
+				additional_offset = FLITDB_SEGMENT_SIZE;
 		}
-		else
-			row_count[0] -= 1;
 		if (offset[1] < (*handler)->size)
 		{
 			// Move segments after offset position
@@ -1114,7 +1113,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 					flitdb_error_state(handler, 14);
 					return FLITDB_ERROR;
 				}
-				fseek((*handler)->file_descriptor, (((*handler)->size - buffer_offset) + offset_sizing), SEEK_SET);
+				fseek((*handler)->file_descriptor, (((*handler)->size - buffer_offset) + offset_sizing + additional_offset), SEEK_SET);
 				if (fwrite((*handler)->buffer, buffer_size, 1, (*handler)->file_descriptor) != 1)
 				{
 					flitdb_error_state(handler, 15);
@@ -1125,9 +1124,13 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				buffer_size = FLITDB_MAX_BUFFER_SIZE;
 				buffer_offset += buffer_size;
 			}
-			fseek((*handler)->file_descriptor, (((*handler)->size - buffer_offset) + offset_sizing), SEEK_SET);
+			fseek((*handler)->file_descriptor, (((*handler)->size - buffer_offset) + offset_sizing + additional_offset), SEEK_SET);
 		}
 		(*handler)->size += offset_sizing;
+		if (current_length[1] == 0)
+			(*handler)->size += additional_offset;
+		else
+			row_count[0] -= 1;
 	}
 	else if (input_size < current_length[0] || (input_size < current_length[0] && (*handler)->value_type == FLITDB_CHAR) || (*handler)->value_type == FLITDB_NULL)
 	{
