@@ -25,6 +25,9 @@
 #define FLITDB_SIZING_MODE_SMALL 2 // Handle databases up to 4.26 gigabytes in size
 #define FLITDB_SIZING_MODE_BIG   3 // Handle databases up to 281.470 terabytes in size
 
+// Database memory mapping
+#define FLITDB_MMAP_ALLOWED 1 // Allows the database to memory map files - if possible (1 - allowed, 0 - dissallowed)
+
 // Database sizing selection
 #define FLITDB_SIZING_MODE FLITDB_SIZING_MODE_BIG // The sizing mode for this compilation
 
