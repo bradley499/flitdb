@@ -31,7 +31,7 @@ bool flitdb_retrieve_value_bool(flitdb **handler);
 unsigned char flitdb_retrieve_value_type(flitdb **handler);
 void flitdb_error_state(flitdb **handler, unsigned char error_id);
 #if FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_TINY
-union flitdb_read_mmap_response flitdb_read_mmap(unsigned int position, unsigned char size, bool floating_point, char *mmapped_char);
+union flitdb_read_mmap_response flitdb_read_mmap(unsigned int position, unsigned char size, void *mmapped_char);
 #endif
 
 #define FLITDB_MAX_BUFFER_SIZE 1024
@@ -303,7 +303,7 @@ union flitdb_read_mmap_response
 	unsigned char bytes[4];
 };
 
-union flitdb_read_mmap_response flitdb_read_mmap(unsigned int position, unsigned char size, bool floating_point, char *mmapped_char)
+union flitdb_read_mmap_response flitdb_read_mmap(unsigned int position, unsigned char size, void *mmapped_char)
 {
 	union flitdb_read_mmap_response value;
 	memset(value.bytes, 0, 4);
@@ -623,6 +623,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 	void *mmapped_file = (void *)-1;
 	if ((*handler)->read_only)
 		mmapped_file = mmap(NULL, (*handler)->size, PROT_READ, MAP_PRIVATE, fileno((*handler)->file_descriptor), 0); // Attempt to allocate memory to map to file
+	printf("MMAP!\n");
 #endif
 	for (;;)
 	{
@@ -649,7 +650,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			unsigned short skip_amount;
 #ifdef FLITDB_MMAP_OK
 			if (mmapped_file != (void *)-1)
-				skip_amount = (unsigned short)flitdb_read_mmap(offset, sizeof(short), false, mmapped_file).integer;
+				skip_amount = (unsigned short)flitdb_read_mmap(offset, sizeof(short), mmapped_file).integer;
 			else
 #endif
 				if (fread(&skip_amount, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read skip amount from previous partition
@@ -679,7 +680,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 				return FLITDB_NULL;
 #ifdef FLITDB_MMAP_OK
 			if (mmapped_file != (void *)-1)
-				row_count = (unsigned short)flitdb_read_mmap((offset + sizeof(short)), sizeof(short), false, mmapped_file).integer;
+				row_count = (unsigned short)flitdb_read_mmap((offset + sizeof(short)), sizeof(short), mmapped_file).integer;
 			else
 #endif
 				if (fread(&row_count, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read row count for partition
@@ -706,7 +707,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			unsigned short position;
 #ifdef FLITDB_MMAP_OK
 			if (mmapped_file != (void *)-1)
-				position = (unsigned short)flitdb_read_mmap((offset + ((sizeof(short) * 2) * (read_length == FLITDB_PARTITION_AND_SEGMENT))), sizeof(short), false, mmapped_file).integer;
+				position = (unsigned short)flitdb_read_mmap((offset + ((sizeof(short) * 2) * (read_length == FLITDB_PARTITION_AND_SEGMENT))), sizeof(short), mmapped_file).integer;
 			else
 #endif
 				if (fread(&position, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read row position
@@ -750,9 +751,9 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 		if (mmapped_file != (void *)-1)
 		{
 			if (read_length == FLITDB_PARTITION_AND_SEGMENT)
-				data_type = (unsigned short)flitdb_read_mmap((offset + (sizeof(short) * 3)), 1, false, mmapped_file).integer;
+				data_type = (unsigned short)flitdb_read_mmap((offset + (sizeof(short) * 3)), 1, mmapped_file).integer;
 			else
-				data_type = (unsigned short)flitdb_read_mmap((offset + sizeof(short)), 1, false, mmapped_file).integer;
+				data_type = (unsigned short)flitdb_read_mmap((offset + sizeof(short)), 1, mmapped_file).integer;
 			offset_mmap_standard_diff += 1;
 		}
 		else
@@ -771,7 +772,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 				(*handler)->value_type = FLITDB_INTEGER;
 #ifdef FLITDB_MMAP_OK
 				if (mmapped_file != (void *)-1)
-					(*handler)->value.int_value = flitdb_read_mmap(offset_mmap_standard_diff, sizeof(int), false, mmapped_file).integer;
+					(*handler)->value.int_value = flitdb_read_mmap(offset_mmap_standard_diff, sizeof(int), mmapped_file).integer;
 				else
 #endif
 					if (fread(&(*handler)->value.int_value, 1, sizeof(int), (*handler)->file_descriptor) != sizeof(int)) // Read and store integer value
@@ -794,7 +795,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 				(*handler)->value_type = FLITDB_FLOAT;
 #ifdef FLITDB_MMAP_OK
 				if (mmapped_file != (void *)-1)
-					(*handler)->value.float_value = flitdb_read_mmap(offset_mmap_standard_diff, sizeof(float), true, mmapped_file).floating_point;
+					(*handler)->value.float_value = flitdb_read_mmap(offset_mmap_standard_diff, sizeof(float), mmapped_file).floating_point;
 				else
 #endif
 					if (fread(&(*handler)->value.float_value, 1, sizeof(float), (*handler)->file_descriptor) != sizeof(float)) // Read and store float value
@@ -815,7 +816,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			data_type = FLITDB_CHAR;
 #ifdef FLITDB_MMAP_OK
 			if (mmapped_file != (void *)-1)
-				response_length = (unsigned short)flitdb_read_mmap(offset_mmap_standard_diff, sizeof(short), false, mmapped_file).integer;
+				response_length = (unsigned short)flitdb_read_mmap(offset_mmap_standard_diff, sizeof(short), mmapped_file).integer;
 			else
 #endif
 				if (fread(&response_length, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read length of char array
