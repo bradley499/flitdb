@@ -1201,33 +1201,36 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		flitdb_sizing_max position;
 		bool use;
 	};
-	struct relinquish_excersion info_skip_offset;
-	info_skip_offset.size = 0;
-	info_skip_offset.position = 0;
-	info_skip_offset.use = false;
-	struct relinquish_excersion info_row_count;
-	info_row_count.size = row_count[0];
-	if (((input_size == 0 && (*handler)->value_type == FLITDB_NULL) || current_length[0] == 1) && info_row_count.size != 0)
-		info_row_count.size--;
-	info_row_count.position = 0;
-	info_row_count.use = false;
-	struct relinquish_excersion info_row_position;
-	info_row_position.size = row_position;
-	info_row_position.position = 0;
-	info_row_position.use = false;
-	struct relinquish_excersion info_input_size;
-	if ((*handler)->value_type == FLITDB_CHAR)
-		info_input_size.size = (input_size - 1);
-	info_input_size.position = 0;
-	info_input_size.use = false;
-	struct relinquish_excersion info_input_type;
-	info_input_type.size = (*handler)->value_type;
-	info_input_type.position = 0;
-	info_input_type.use = false;
-	struct relinquish_excersion info_input_buffer;
-	info_input_buffer.size = 0;
-	info_input_buffer.position = 0;
-	info_input_buffer.use = false;
+	struct relinquish_excersion info_skip_offset = {
+		.size = 0,
+		.position = 0,
+		.use = false
+	};
+	struct relinquish_excersion info_row_count = {
+		.size = (unsigned short)((((input_size == 0 && (*handler)->value_type == FLITDB_NULL) || current_length[0] == 1) && info_row_count.size != 0) ? (row_count[0] - 1) : row_count[0]),
+		.position = 0,
+		.use = false
+	};
+	struct relinquish_excersion info_row_position = {
+		.size = (unsigned short)row_position,
+		.position = 0,
+		.use = false
+	};
+	struct relinquish_excersion info_input_size = {
+		.size = (unsigned short)(((*handler)->value_type == FLITDB_CHAR) ? (input_size - 1) : 0),
+		.position = 0,
+		.use = 0
+	};
+	struct relinquish_excersion info_input_type = {
+		.size = (*handler)->value_type,
+		.position = 0,
+		.use = false
+	};
+	struct relinquish_excersion info_input_buffer = {
+		.size = 0,
+		.position = 0,
+		.use = 0
+	};
 	bool removal = false;
 	if (input_size > current_length[0] || (current_length[1] == 0 && (*handler)->value_type != FLITDB_NULL))
 	{
