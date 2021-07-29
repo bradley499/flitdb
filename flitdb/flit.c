@@ -77,7 +77,7 @@ unsigned int flitdb_version_check()
 	return FLITDB_VERSION;
 }
 
-int flitdb_setup(const char *filename, flitdb **handler, int flags)
+int flitdb_open(const char *filename, flitdb **handler, int flags)
 {
 	if (flitdb_new(handler) == FLITDB_ERROR)
 	{
