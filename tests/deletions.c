@@ -10,7 +10,7 @@
 int main(int argc, char const *argv[])
 {
 	flitdb *flit;
-	assert(flitdb_setup("./test.db", &flit, FLITDB_CREATE) == FLITDB_SUCCESS);
+	assert(flitdb_open("./test.db", &flit, FLITDB_CREATE) == FLITDB_SUCCESS);
 	bool (*deleted)[MAX];
 	deleted = malloc((MAX + 1) * (MAX + 1) * sizeof deleted[0][0]);
 	int deleted_amount = 0;

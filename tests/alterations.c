@@ -11,7 +11,7 @@
 int main(int argc, char const *argv[])
 {
 	flitdb *flit;
-	assert(flitdb_setup("./test.db", &flit, FLITDB_CREATE) == FLITDB_SUCCESS);
+	assert(flitdb_open("./test.db", &flit, FLITDB_CREATE) == FLITDB_SUCCESS);
 	typedef struct value
 	{
 		unsigned short column;

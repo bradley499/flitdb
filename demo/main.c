@@ -15,7 +15,7 @@ int main()
 		return 1;
 	}
 	flitdb *flit;
-	if (flitdb_setup("demo.db", &flit, FLITDB_CREATE) != FLITDB_SUCCESS)
+	if (flitdb_open("demo.db", &flit, FLITDB_CREATE) != FLITDB_SUCCESS)
 	{
 		printf("%s\n", flitdb_errmsg(&flit));
 		return 1;
