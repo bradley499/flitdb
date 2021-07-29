@@ -295,13 +295,13 @@ With `flit` being any name that you wish, as it is a variable name. You do not n
 **NOTE:** The FlitDB object is expected to be passed by reference to all functions (example: `&flit`).
 
 ## Compilation Options
-Within the file [`flit.h`](flitdb/flit.h), you can limit set the compilation value of `FLITDB_SIZING_MODE` to one of three different values; this definition of a sizing mode is put in place to further limit the amount of data that FlitDB will have access to.
+Within the file [`flit.h`](flitdb/flit.h), you can limit the total operable size of the database, by setting the compilation value of `FLITDB_SIZING_MODE` to one of three different values; this definition of a sizing mode is put in place to further limit the amount of data that FlitDB will have access to. Additionally, you also have the option to allow memory mapping the database file, this results in a faster overall "read" time as the reading of the database can be accomplished from reading the mapped memory database file, instead of reading from *disk*; this feature is currently only supported when the `FLITDB_SIZING_MODE` is set to `FLITDB_SIZING_MODE_TINY` as well as opening the database with the [`FLITDB_READONLY`](#access-flags) option set, and requires enabling, which can be done by setting the value of `FLITDB_MMAP_ALLOWED` to `1` (default value - is enabled by default).
 ### Sizing mode
-|Mode|Limitations|
-|-|-|
-|FLITDB_SIZING_MODE_BIG|Default - allows for writing up to 65536 columns (and even more with [`FLITDB_UNSAFE`](#access-flags)), and up to 65536 rows.|
-|FLITDB_SIZING_MODE_SMALL|Allows up to 256 columns and rows. Cannot be used in conjunction with [`FLITDB_UNSAFE`](#access-flags).|
-|FLITDB_SIZING_MODE_TINY|Allows up to 16 columns and rows. Cannot be used in conjunction with [`FLITDB_UNSAFE`](#access-flags).|
+|Mode|Limitations|Maximum size|
+|-|-|-|
+|FLITDB_SIZING_MODE_BIG|Default - allows for writing up to 65536 columns (and even more with [`FLITDB_UNSAFE`](#access-flags)), and up to 65536 rows.|`281.47` TB|
+|FLITDB_SIZING_MODE_SMALL|Allows up to 256 columns and rows. Cannot be used in conjunction with [`FLITDB_UNSAFE`](#access-flags).|`4.26` GB|
+|FLITDB_SIZING_MODE_TINY|Allows up to 16 columns and rows. Cannot be used in conjunction with [`FLITDB_UNSAFE`](#access-flags).|`14.74` MB|
 
 ## FlitDB constants
 ### Access Flags
@@ -309,7 +309,7 @@ Within the file [`flit.h`](flitdb/flit.h), you can limit set the compilation val
 |-|-|
 |`FLITDB_CREATE`|Create a database if not existent.|
 |`FLITDB_READONLY`|Only allow the reading of the database.|
-|`FLITDB_UNSAFE`|Discard all safety protocols to allow for larger database.|
+|`FLITDB_UNSAFE`|Discard all safety protocols to allow for larger database - exceeding [maximum size](#sizing-mode).|
 ### Operation responses
 |Constant|Meaning|
 |-|-|
