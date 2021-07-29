@@ -2,25 +2,25 @@
 ## Syntax
 | API | Parameter | Parameter | Parameter | Parameter | API Version |
 |-|-|-|-|-|-|
-|[`flitdb_setup`](#flitdb_setup)|`filename`|[`&handler`](#handler)|`flags`||efc7|
-|[`flitdb_close`](#flitdb_close)|[`&handler`](#handler)||||efc7|
-|[`flitdb_version_check`](#flitdb_version_check)|||||efc7|
-|[`flitdb_errmsg`](#flitdb_errmsg)|[`&handler`](#handler)||||efc7|
-|[`flitdb_extract`](#flitdb_extract)|[`&handler`](#handler)|`column_position`|`row_position`||efc7|
-|[`flitdb_retrieved_type`](#flitdb_retrieved_type)|[`&handler`](#handler)||||efc7|
-|[`flitdb_insert`](#flitdb_insert)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
-|[`flitdb_insert_int`](#flitdb_insert_int)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
-|[`flitdb_insert_float`](#flitdb_insert_float)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
-|[`flitdb_insert_char`](#flitdb_insert_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
-|[`flitdb_insert_const_char`](#flitdb_insert_const_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
-|[`flitdb_insert_bool`](#flitdb_insert_bool)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|efc7|
-|[`flitdb_delete`](#flitdb_delete)|[`&handler`](#handler)|`column_position`|`row_position`||efc7|
-|[`flitdb_retrieve_int`](#flitdb_retrieve_int)|[`&handler`](#handler)||||efc7|
-|[`flitdb_retrieve_float`](#flitdb_retrieve_float)|[`&handler`](#handler)||||efc7|
-|[`flitdb_retrieve_char`](#flitdb_retrieve_char)|[`&handler`](#handler)||||efc7|
-|[`flitdb_retrieve_bool`](#flitdb_retrieve_bool)|[`&handler`](#handler)||||efc7|
+|[`flitdb_open`](#flitdb_open)|`filename`|[`&handler`](#handler)|`flags`||117ee|
+|[`flitdb_close`](#flitdb_close)|[`&handler`](#handler)||||117ee|
+|[`flitdb_version_check`](#flitdb_version_check)|||||117ee|
+|[`flitdb_errmsg`](#flitdb_errmsg)|[`&handler`](#handler)||||117ee|
+|[`flitdb_extract`](#flitdb_extract)|[`&handler`](#handler)|`column_position`|`row_position`||117ee|
+|[`flitdb_retrieved_type`](#flitdb_retrieved_type)|[`&handler`](#handler)||||117ee|
+|[`flitdb_insert`](#flitdb_insert)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|117ee|
+|[`flitdb_insert_int`](#flitdb_insert_int)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|117ee|
+|[`flitdb_insert_float`](#flitdb_insert_float)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|117ee|
+|[`flitdb_insert_char`](#flitdb_insert_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|117ee|
+|[`flitdb_insert_const_char`](#flitdb_insert_const_char)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|117ee|
+|[`flitdb_insert_bool`](#flitdb_insert_bool)|[`&handler`](#handler)|`column_position`|`row_position`|`value`|117ee|
+|[`flitdb_delete`](#flitdb_delete)|[`&handler`](#handler)|`column_position`|`row_position`||117ee|
+|[`flitdb_retrieve_int`](#flitdb_retrieve_int)|[`&handler`](#handler)||||117ee|
+|[`flitdb_retrieve_float`](#flitdb_retrieve_float)|[`&handler`](#handler)||||117ee|
+|[`flitdb_retrieve_char`](#flitdb_retrieve_char)|[`&handler`](#handler)||||117ee|
+|[`flitdb_retrieve_bool`](#flitdb_retrieve_bool)|[`&handler`](#handler)||||117ee|
 ## APIs
-### flitdb_setup
+### flitdb_open
 Opens database through a FlitDB connection for operations. This **must** be done in order to use any subsequent FlitDB API, as the database must be accessible in order to perform any actions to it. The parameters used in conjunction with this API are as follows:
 
  - `filename` - This is the location of where the database is expected to be at for FlitDB to handle. Expected data type is `const char *`.
@@ -290,7 +290,7 @@ A handler is a FlitDB object, which is used to perform operations on the databas
 
 	flitdb *flit;
 
-With `flit` being any name that you wish, as it is a variable name. You do not need to declare the FlitDB object as being initialized with any value, as that is handled all by the function [`flitdb_setup`](#flitdb_setup), allowing for a easy creation and deletion - when used with [`flitdb_close`](#flitdb_close).
+With `flit` being any name that you wish, as it is a variable name. You do not need to declare the FlitDB object as being initialized with any value, as that is handled all by the function [`flitdb_open`](#flitdb_open), allowing for a easy creation and deletion - when used with [`flitdb_close`](#flitdb_close).
 
 **NOTE:** The FlitDB object is expected to be passed by reference to all functions (example: `&flit`).
 
