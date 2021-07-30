@@ -1,4 +1,4 @@
-GCC=gcc
+CC ?= gcc
 LIB=libflitdb.so
 LIB_PATH=/usr/lib
 HEADER_PATH=/usr/include/flit.h
@@ -16,10 +16,10 @@ default: build update clean done
 
 build:
 	@echo -n "Generating object..."
-	@$(GCC) $(OBJ_ARGS) -c $(SRC)
+	@$(CC) $(OBJ_ARGS) -c $(SRC)
 	@echo " done"
 	@echo -n "Generating shared library..."
-	@$(GCC) -fPIC -s -shared -o $(LIB) $(OBJ)
+	@$(CC) -fPIC -s -shared -o $(LIB) $(OBJ)
 	@echo " done"
 
 update:

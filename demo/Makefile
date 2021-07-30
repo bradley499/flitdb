@@ -1,7 +1,6 @@
-GCC=gcc
+CC ?= gcc
 SRCDIR=../flitdb
 ARGS=-Wall -g -ggdb
-LIB_ARGS=-DFLITDB_LIB_DEMO
 LIB_LINK=-lflitdb
 BUILD_DIR=./build
 TARGET=demo
@@ -23,15 +22,15 @@ setup_lib:
 
 build:
 	@echo -n "Compiling... "
-	@$(GCC) $(ARGS) -c $(SRC)
-	@$(GCC) -o $(BUILD_DIR)/$(TARGET) $(OBJ)
+	@$(CC) $(ARGS) -c $(SRC)
+	@$(CC) -o $(BUILD_DIR)/$(TARGET) $(OBJ)
 	@echo "Done"
 
 build_lib:
 	@cd $(SRCDIR) && $(MAKE)
 	@echo -n "Compiling with shared library... "
-	@$(GCC) $(ARGS) $(LIB_ARGS) -c $(DEMO_FILES)
-	@$(GCC) $(ARGS) $(DEMO_FILES:.c=.o) $(LIB_LINK) -o $(BUILD_DIR)/$(TARGET)
+	@$(CC) $(ARGS) -c $(DEMO_FILES)
+	@$(CC) $(ARGS) $(DEMO_FILES:.c=.o) $(LIB_LINK) -o $(BUILD_DIR)/$(TARGET)
 	@echo "Done"
 
 lib: setup_lib build_lib
