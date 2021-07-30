@@ -366,7 +366,7 @@ void flitdb_destroy(flitdb **handler)
 	}
 }
 
-const flitdb_sizing_max flitdb_max_size()
+static inline const flitdb_sizing_max flitdb_max_size()
 {
 	// To calculate the maximum file size of what the database file can safely be read and written to
 	flitdb_sizing_max insertion_area[2] = {0, 0};
@@ -650,10 +650,10 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			unsigned short skip_amount;
 #ifdef FLITDB_MMAP_OK
 			if (mmapped_file != (void *)-1)
-				skip_amount = (unsigned short)flitdb_read_mmap(offset, sizeof(short), mmapped_file).integer;
+				skip_amount = (unsigned short)flitdb_read_mmap(offset, sizeof(short), mmapped_file).integer; // Read memory mapped amount to skip in relation to previous partition
 			else
 #endif
-				if (fread(&skip_amount, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read skip amount from previous partition
+				if (fread(&skip_amount, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read amount to skip in relation to previous partition
 			{
 				flitdb_error_state(handler, 14);
 				return FLITDB_ERROR;
@@ -680,7 +680,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 				return FLITDB_NULL;
 #ifdef FLITDB_MMAP_OK
 			if (mmapped_file != (void *)-1)
-				row_count = (unsigned short)flitdb_read_mmap((offset + sizeof(short)), sizeof(short), mmapped_file).integer;
+				row_count = (unsigned short)flitdb_read_mmap((offset + sizeof(short)), sizeof(short), mmapped_file).integer; // Read memory mapped row count for partition
 			else
 #endif
 				if (fread(&row_count, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read row count for partition
@@ -707,7 +707,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			unsigned short position;
 #ifdef FLITDB_MMAP_OK
 			if (mmapped_file != (void *)-1)
-				position = (unsigned short)flitdb_read_mmap((offset + ((sizeof(short) * 2) * (read_length == FLITDB_PARTITION_AND_SEGMENT))), sizeof(short), mmapped_file).integer;
+				position = (unsigned short)flitdb_read_mmap((offset + ((sizeof(short) * 2) * (read_length == FLITDB_PARTITION_AND_SEGMENT))), sizeof(short), mmapped_file).integer; // Read memory mapped row position
 			else
 #endif
 				if (fread(&position, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read row position
@@ -734,7 +734,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 		}
 		else
 #ifdef FLITDB_MMAP_OK
-		if (mmapped_file == (void *)-1)
+			if (mmapped_file == (void *)-1)
 #endif
 			fseek((*handler)->file_descriptor, sizeof(short), SEEK_CUR); // Ignore row position of current value
 		if (row_count > 1)												 // If more segments remain
@@ -750,6 +750,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			offset_mmap_standard_diff = (offset + sizeof(short));
 		if (mmapped_file != (void *)-1)
 		{
+			// Read memory mapped data type of current value
 			if (read_length == FLITDB_PARTITION_AND_SEGMENT)
 				data_type = (unsigned short)flitdb_read_mmap((offset + (sizeof(short) * 3)), 1, mmapped_file).integer;
 			else
@@ -772,7 +773,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 				(*handler)->value_type = FLITDB_INTEGER;
 #ifdef FLITDB_MMAP_OK
 				if (mmapped_file != (void *)-1)
-					(*handler)->value.int_value = flitdb_read_mmap(offset_mmap_standard_diff, sizeof(int), mmapped_file).integer;
+					(*handler)->value.int_value = flitdb_read_mmap(offset_mmap_standard_diff, sizeof(int), mmapped_file).integer; // Read and store memory mapped integer value
 				else
 #endif
 					if (fread(&(*handler)->value.int_value, 1, sizeof(int), (*handler)->file_descriptor) != sizeof(int)) // Read and store integer value
@@ -795,7 +796,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 				(*handler)->value_type = FLITDB_FLOAT;
 #ifdef FLITDB_MMAP_OK
 				if (mmapped_file != (void *)-1)
-					(*handler)->value.float_value = flitdb_read_mmap(offset_mmap_standard_diff, sizeof(float), mmapped_file).floating_point;
+					(*handler)->value.float_value = flitdb_read_mmap(offset_mmap_standard_diff, sizeof(float), mmapped_file).floating_point; // Read and store memory mapped float value
 				else
 #endif
 					if (fread(&(*handler)->value.float_value, 1, sizeof(float), (*handler)->file_descriptor) != sizeof(float)) // Read and store float value
@@ -816,7 +817,7 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 			data_type = FLITDB_CHAR;
 #ifdef FLITDB_MMAP_OK
 			if (mmapped_file != (void *)-1)
-				response_length = (unsigned short)flitdb_read_mmap(offset_mmap_standard_diff, sizeof(short), mmapped_file).integer;
+				response_length = (unsigned short)flitdb_read_mmap(offset_mmap_standard_diff, sizeof(short), mmapped_file).integer; // Read memory mapped length of char value
 			else
 #endif
 				if (fread(&response_length, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read length of char array
@@ -841,10 +842,9 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 #ifdef FLITDB_MMAP_OK
 				if (mmapped_file != (void *)-1)
 				{
-					memset((*handler)->value.char_value, 0, FLITDB_MAX_CHAR_LENGTH);
 					flitdb_sizing_max offset_diff = (offset_mmap_standard_diff + sizeof(short));
 					for (flitdb_sizing_max i = 0; i < response_length; i++)
-						(*handler)->value.char_value[i] = ((char *)mmapped_file)[(i + offset_diff)];
+						(*handler)->value.char_value[i] = ((char *)mmapped_file)[(i + offset_diff)]; // Read memory mapped char byte
 				}
 				else
 #endif
@@ -908,12 +908,12 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 {
 	if (!(*handler)->configured)
 	{
-		flitdb_error_state(handler, 8);
+		flitdb_error_state(handler, 8); // Handler not configured
 		return FLITDB_ERROR;
 	}
 	if ((*handler)->read_only)
 	{
-		flitdb_error_state(handler, 9);
+		flitdb_error_state(handler, 9); // Opened in read only mode
 		flitdb_clear_values(handler);
 		return FLITDB_READONLY;
 	}
@@ -923,7 +923,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 #endif
 		if (column_position == 0 || (column_position - 1) > FLITDB_COLUMN_POSITION_MAX || row_position == 0 || (row_position - 1) > FLITDB_ROW_POSITION_MAX)
 		{
-			flitdb_error_state(handler, 12);
+			flitdb_error_state(handler, 12); // Outside of supported range
 			flitdb_clear_values(handler);
 			return FLITDB_RANGE;
 		}
@@ -933,46 +933,32 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 #endif
 		if (column_position == 0 || row_position == 0)
 	{
-		flitdb_error_state(handler, 21);
+		flitdb_error_state(handler, 21); // Outside of supported range, must at least be 1
 		flitdb_clear_values(handler);
 		return FLITDB_RANGE;
 	}
 	else if ((row_position - 1) > FLITDB_ROW_POSITION_MAX)
 	{
-		flitdb_error_state(handler, 12);
+		flitdb_error_state(handler, 12); // Outside of supported range
 		flitdb_clear_values(handler);
 		return FLITDB_RANGE;
 	}
 	row_position -= 1;
-	char *input_buffer = NULL;
 	unsigned short input_size = 0;
 	switch ((*handler)->value_type)
 	{
 	case FLITDB_INTEGER:
 		input_size = sizeof(int);
-		free(input_buffer);
 		break;
 	case FLITDB_FLOAT:
 		input_size = sizeof(float);
-		free(input_buffer);
 		break;
 	case FLITDB_BOOL:
-		free(input_buffer);
 		break;
 	case FLITDB_CHAR:
 		input_size = strlen((*handler)->value.char_value);
 		if (input_size == 0)
-		{
 			flitdb_clear_values(handler);
-			if (input_buffer != NULL)
-				free(input_buffer);
-		}
-		else
-		{
-			input_buffer = (char *)calloc((input_size + 1), sizeof(char));
-			input_buffer[input_size] = '\0';
-			strncpy(input_buffer, (*handler)->value.char_value, input_size);
-		}
 		break;
 	}
 	const unsigned short input_size_default = input_size;
@@ -997,6 +983,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 			{
 				if ((offset[0] - current_length[0]) > (*handler)->size)
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 13);
 					return FLITDB_CORRUPT;
 				}
@@ -1028,6 +1015,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				skip_amount[1] = skip_amount[0]; // Set previous skip amount
 				if (fread(&skip_amount[0], 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 14);
 					return FLITDB_ERROR;
 				}
@@ -1039,6 +1027,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 					if (!(*handler)->unsafe)
 					{
 #endif
+						flitdb_clear_values(handler);
 						flitdb_error_state(handler, 22);
 						return FLITDB_RANGE;
 #ifdef FLITDB_ALLOW_UNSAFE
@@ -1048,12 +1037,14 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				skip_offset[0] += 1;
 				if (fread(&row_count[0], 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 14);
 					return FLITDB_ERROR;
 				}
 #if FLITDB_SIZING_MODE != FLITDB_SIZING_MODE_BIG
 				if (row_count[0] > FLITDB_ROW_POSITION_MAX)
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 22);
 					return FLITDB_RANGE;
 				}
@@ -1077,6 +1068,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				unsigned short position;
 				if (fread(&position, 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 14);
 					return FLITDB_ERROR;
 				}
@@ -1084,6 +1076,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				{
 					if (fread(&current_type, 1, 1, (*handler)->file_descriptor) != 1)
 					{
+						flitdb_clear_values(handler);
 						flitdb_error_state(handler, 14);
 						return FLITDB_ERROR;
 					}
@@ -1108,6 +1101,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 					case FLITDB_READ_BOOL_FALSE:
 						break;
 					default:
+						flitdb_clear_values(handler);
 						flitdb_error_state(handler, 20);
 						return FLITDB_ERROR;
 					}
@@ -1119,6 +1113,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 #if FLITDB_SIZING_MODE != FLITDB_SIZING_MODE_BIG
 				else if (position > FLITDB_ROW_POSITION_MAX)
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 22);
 					return FLITDB_RANGE;
 				}
@@ -1160,11 +1155,13 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				fseek((*handler)->file_descriptor, (3 - skip_read_offset), SEEK_CUR);
 			if (fread(&current_type, 1, 1, (*handler)->file_descriptor) != 1)
 			{
+				flitdb_clear_values(handler);
 				flitdb_error_state(handler, 14);
 				return FLITDB_ERROR;
 			}
 			switch (current_type)
 			{
+				// Get sizes of current type
 			case FLITDB_READ_INT:
 				current_length[0] = sizeof(int);
 				break;
@@ -1172,8 +1169,9 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				current_length[0] = sizeof(float);
 				break;
 			case FLITDB_READ_CHAR:
-				if (fread(&current_length[0], 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
+				if (fread(&current_length[0], 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short)) // Read the current size of the char array
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 14);
 					return FLITDB_ERROR;
 				}
@@ -1181,20 +1179,21 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				break;
 			case FLITDB_READ_BOOL_TRUE:
 			case FLITDB_READ_BOOL_FALSE:
-				break;
+				break; // Length is 0 for boolean value stores
 			default:
+				flitdb_clear_values(handler);
 				flitdb_error_state(handler, 20);
 				return FLITDB_ERROR;
 			}
 			current_type = 0;
-			if (row_count[0] == 1)
-				read_length[0] = FLITDB_PARTITION_AND_SEGMENT;
-			row_count[0] -= 1;
+			if (row_count[0] == 1)							   // Reached end of partition row count
+				read_length[0] = FLITDB_PARTITION_AND_SEGMENT; // New partition
+			row_count[0] -= 1;								   // Decrement the rows remaining
 			offset[0] += current_length[0];
 		}
 	}
-	if (current_length[1] == 0 && (input_size == 0 && (*handler)->value_type == FLITDB_NULL))
-		return FLITDB_DONE; // No need to write any data
+	if (current_length[1] == 0 && (input_size == 0 && (*handler)->value_type == FLITDB_NULL)) // No need to remove anything as nothing exists already
+		return FLITDB_DONE;																	  // No need to write any data
 	struct relinquish_excersion
 	{
 		unsigned short size;
@@ -1204,44 +1203,39 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 	struct relinquish_excersion info_skip_offset = {
 		.size = 0,
 		.position = 0,
-		.use = false
-	};
+		.use = false};
 	struct relinquish_excersion info_row_count = {
 		.size = (unsigned short)((((input_size == 0 && (*handler)->value_type == FLITDB_NULL) || current_length[0] == 1) && info_row_count.size != 0) ? (row_count[0] - 1) : row_count[0]),
 		.position = 0,
-		.use = false
-	};
+		.use = false};
 	struct relinquish_excersion info_row_position = {
 		.size = (unsigned short)row_position,
 		.position = 0,
-		.use = false
-	};
+		.use = false};
 	struct relinquish_excersion info_input_size = {
 		.size = (unsigned short)(((*handler)->value_type == FLITDB_CHAR) ? (input_size - 1) : 0),
 		.position = 0,
-		.use = 0
-	};
+		.use = 0};
 	struct relinquish_excersion info_input_type = {
 		.size = (*handler)->value_type,
 		.position = 0,
-		.use = false
-	};
+		.use = false};
 	struct relinquish_excersion info_input_buffer = {
 		.size = 0,
 		.position = 0,
-		.use = 0
-	};
+		.use = 0};
 	bool removal = false;
 	if (input_size > current_length[0] || (current_length[1] == 0 && (*handler)->value_type != FLITDB_NULL))
 	{
+		// Adding new value, or extending current value
 		unsigned short offset_sizing = (input_size - current_length[0]);
 		unsigned char additional_offset = 0;
-		if (current_length[1] == 0)
+		if (current_length[1] == 0) // Is new value
 		{
 			if (row_count[0] == 0)
-				additional_offset = FLITDB_PARTITION_AND_SEGMENT;
+				additional_offset = FLITDB_PARTITION_AND_SEGMENT; // New partition and segment
 			else
-				additional_offset = FLITDB_SEGMENT_SIZE;
+				additional_offset = FLITDB_SEGMENT_SIZE; // New segment
 		}
 		if (offset[1] < (*handler)->size)
 		{
@@ -1253,16 +1247,19 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 			unsigned short buffer_size = buffer_offset;
 			for (;;)
 			{
+				// Push data (extend) position by offset amount
 				memset((*handler)->buffer, 0, sizeof((*handler)->buffer));
 				fseek((*handler)->file_descriptor, ((*handler)->size - buffer_offset), SEEK_SET);
 				if (fread((*handler)->buffer, buffer_size, 1, (*handler)->file_descriptor) != 1)
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 14);
 					return FLITDB_ERROR;
 				}
 				fseek((*handler)->file_descriptor, (((*handler)->size - buffer_offset) + offset_sizing + additional_offset), SEEK_SET);
 				if (fwrite((*handler)->buffer, buffer_size, 1, (*handler)->file_descriptor) != 1)
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 15);
 					return FLITDB_ERROR;
 				}
@@ -1274,13 +1271,14 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 			fseek((*handler)->file_descriptor, (((*handler)->size - buffer_offset) + offset_sizing + additional_offset), SEEK_SET);
 		}
 		(*handler)->size += offset_sizing;
-		if (current_length[1] == 0)
+		if (current_length[1] == 0) // Is new value
 			(*handler)->size += additional_offset;
 		else
-			row_count[0] -= 1;
+			row_count[0] -= 1; // Updated existing value
 	}
 	else if (input_size < current_length[0] || (input_size < current_length[0] && (*handler)->value_type == FLITDB_CHAR) || (*handler)->value_type == FLITDB_NULL)
 	{
+		// Removing value, or reducing current value
 		unsigned short offset_sizing = (current_length[0] - (current_length[0] - input_size));
 		if (row_count[0] == 1)
 		{
@@ -1314,7 +1312,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 					deletion_point[1] += FLITDB_PARTITION_SIZE;
 				}
 				else if (row_count[0] == 1)
-					deletion_point[1] -= FLITDB_PARTITION_AND_SEGMENT;
+					deletion_point[1] -= FLITDB_PARTITION_AND_SEGMENT; // Removing partition and segment
 				else
 					deletion_point[1] -= FLITDB_PARTITION_SIZE;
 			}
@@ -1328,9 +1326,10 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		bool writable = (deletion_point[0] != (*handler)->size);
 		while (writable)
 		{
+			// Push data (reduce) position by offset amount
 			if ((deletion_point[0] + buffer_offset + buffer_size) >= (*handler)->size)
 			{
-				buffer_size = ((*handler)->size - (deletion_point[0] + buffer_offset));
+				buffer_size = ((*handler)->size - (deletion_point[0] + buffer_offset)); // Set buffer size to remaining bytes of file
 				writable = false;
 				if (buffer_size == 0)
 					break;
@@ -1339,12 +1338,14 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 			fseek((*handler)->file_descriptor, (deletion_point[0] + buffer_offset), SEEK_SET);
 			if (fread((*handler)->buffer, buffer_size, 1, (*handler)->file_descriptor) != 1)
 			{
+				flitdb_clear_values(handler);
 				flitdb_error_state(handler, 14);
 				return FLITDB_ERROR;
 			}
 			fseek((*handler)->file_descriptor, (deletion_point[1] + buffer_offset), SEEK_SET);
 			if (fwrite((*handler)->buffer, buffer_size, 1, (*handler)->file_descriptor) != 1)
 			{
+				flitdb_clear_values(handler);
 				flitdb_error_state(handler, 15);
 				return FLITDB_ERROR;
 			}
@@ -1360,8 +1361,6 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		}
 		if (ftruncate(fileno((*handler)->file_descriptor), (*handler)->size) != 0)
 		{
-			if (input_buffer != NULL)
-				free(input_buffer);
 			flitdb_clear_values(handler);
 			flitdb_error_state(handler, 17);
 			return FLITDB_CORRUPT;
@@ -1382,7 +1381,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		info_row_count.size -= 1;
 	if (((input_size == 0 && (*handler)->value_type != FLITDB_NULL) ? true : (input_size != 0)) && !removal)
 	{
-		// MORE EXIST
+		// Partition exists at a later skip position
 		info_skip_offset.use = true;
 		if (row_count[0] == 0)
 		{
@@ -1415,6 +1414,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 			{
 				if (fread(&skip_amount[1], sizeof(short), 1, (*handler)->file_descriptor) != 1)
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 14);
 					return FLITDB_ERROR;
 				}
@@ -1425,6 +1425,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 				fseek((*handler)->file_descriptor, offset[0], SEEK_SET);
 				if (fwrite(&skip_amount[0], sizeof(short), 1, (*handler)->file_descriptor) != 1)
 				{
+					flitdb_clear_values(handler);
 					flitdb_error_state(handler, 16);
 					return FLITDB_ERROR;
 				}
@@ -1433,18 +1434,19 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 	}
 	else if (offset[0] != (*handler)->size)
 	{
-		// Removed segment
-		if (row_count[0] == 0)
+		if (row_count[0] == 0) // Partition has been removed
 		{
+			// Removed partition and will increase the skip amount of the later partition
 			info_skip_offset.use = true;
 			fseek((*handler)->file_descriptor, offset[0], SEEK_SET);
 			skip_amount[1] = skip_amount[0];
 			if (fread(&skip_amount[0], 1, sizeof(short), (*handler)->file_descriptor) != sizeof(short))
 			{
+				flitdb_clear_values(handler);
 				flitdb_error_state(handler, 14);
 				return FLITDB_ERROR;
 			}
-			skip_amount[0] += (skip_amount[1] + 1);
+			skip_amount[0] += (skip_amount[1] + 1); // Increment the later partition skip amount with the removed partitions skip amount
 			info_skip_offset.size = skip_amount[0];
 		}
 		else
@@ -1455,6 +1457,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		fseek((*handler)->file_descriptor, info_skip_offset.position, SEEK_SET);
 		if (fwrite(&info_skip_offset.size, sizeof(short), 1, (*handler)->file_descriptor) != 1)
 		{
+			flitdb_clear_values(handler);
 			flitdb_error_state(handler, 15);
 			return FLITDB_ERROR;
 		}
@@ -1464,6 +1467,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		fseek((*handler)->file_descriptor, info_row_count.position, SEEK_SET);
 		if (fwrite(&info_row_count.size, sizeof(short), 1, (*handler)->file_descriptor) != 1)
 		{
+			flitdb_clear_values(handler);
 			flitdb_error_state(handler, 15);
 			return FLITDB_ERROR;
 		}
@@ -1473,6 +1477,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		fseek((*handler)->file_descriptor, info_row_position.position, SEEK_SET);
 		if (fwrite(&info_row_position.size, sizeof(short), 1, (*handler)->file_descriptor) != 1)
 		{
+			flitdb_clear_values(handler);
 			flitdb_error_state(handler, 15);
 			return FLITDB_ERROR;
 		}
@@ -1484,6 +1489,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		fseek((*handler)->file_descriptor, info_input_size.position, SEEK_SET);
 		if (fwrite(&info_input_size.size, sizeof(short), 1, (*handler)->file_descriptor) != 1)
 		{
+			flitdb_clear_values(handler);
 			flitdb_error_state(handler, 15);
 			return FLITDB_ERROR;
 		}
@@ -1495,20 +1501,21 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		switch (info_input_type.size)
 		{
 		case FLITDB_INTEGER:
-			input_type = 1;
+			input_type = FLITDB_READ_INT;
 			break;
 		case FLITDB_FLOAT:
-			input_type = 2;
+			input_type = FLITDB_READ_FLOAT;
 			break;
 		case FLITDB_CHAR:
-			input_type = 3;
+			input_type = FLITDB_READ_CHAR;
 			break;
 		case FLITDB_BOOL:
-			input_type = ((*handler)->value.bool_value ? 4 : 5);
+			input_type = ((*handler)->value.bool_value ? FLITDB_READ_BOOL_TRUE : FLITDB_READ_BOOL_FALSE);
 			break;
 		}
 		if (fwrite(&input_type, 1, 1, (*handler)->file_descriptor) != 1)
 		{
+			flitdb_clear_values(handler);
 			flitdb_error_state(handler, 15);
 			return FLITDB_ERROR;
 		}
@@ -1521,6 +1528,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		case FLITDB_INTEGER:
 			if (fwrite(&(*handler)->value.int_value, sizeof(int), 1, (*handler)->file_descriptor) != 1)
 			{
+				flitdb_clear_values(handler);
 				flitdb_error_state(handler, 15);
 				return FLITDB_ERROR;
 			}
@@ -1528,21 +1536,20 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 		case FLITDB_FLOAT:
 			if (fwrite(&(*handler)->value.float_value, sizeof(float), 1, (*handler)->file_descriptor) != 1)
 			{
+				flitdb_clear_values(handler);
 				flitdb_error_state(handler, 15);
 				return FLITDB_ERROR;
 			}
 			break;
 		case FLITDB_CHAR:
-			if (fwrite(input_buffer, input_size_default, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
+			if (fwrite((*handler)->value.char_value, input_size_default, sizeof(char), (*handler)->file_descriptor) != sizeof(char))
 			{
+				flitdb_clear_values(handler);
 				flitdb_error_state(handler, 15);
 				return FLITDB_ERROR;
 			}
 		}
 	}
-	if ((*handler)->value_type != FLITDB_NULL)
-		if (input_buffer != NULL)
-			free(input_buffer);
 	flitdb_clear_values(handler);
 	return FLITDB_DONE;
 }
