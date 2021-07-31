@@ -71,6 +71,8 @@ test_silent:
 	@cd $(BUILD_DIR);./test_sequential_delete
 	@cd $(BUILD_DIR);./test_inverse_sequential_inserts
 	@cd $(BUILD_DIR);./test_inverse_sequential_delete
+	@cd $(BUILD_DIR);./test_alterations
+	@cd $(BUILD_DIR);./test_mmap
 	@cd $(BUILD_DIR);./test_permission_create
 	@cd $(BUILD_DIR);./test_permission_readonly
 clean:
