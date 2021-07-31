@@ -1,4 +1,4 @@
-CC = g++
+CC ?= gcc
 BUILD_DIR=./build
 ARGS=-Wall -g -ggdb
 SRCDIR=../flitdb
