@@ -1,4 +1,4 @@
-CC ?= gcc
+CC = g++
 BUILD_DIR=./build
 ARGS=-Wall -g -ggdb
 SRCDIR=../flitdb
@@ -63,17 +63,17 @@ test:
 	@echo -n "Permission readonly          "
 	@cd $(BUILD_DIR);./test_permission_readonly > /dev/null 2>&1 && echo "~ Success" || echo "~ Failed"
 
-test_silent:
+test_:
 	@mkdir -pv $(BUILD_DIR)
-	@cd $(BUILD_DIR);./test_insert
-	@cd $(BUILD_DIR);./test_delete
-	@cd $(BUILD_DIR);./test_sequential_inserts
-	@cd $(BUILD_DIR);./test_sequential_delete
-	@cd $(BUILD_DIR);./test_inverse_sequential_inserts
-	@cd $(BUILD_DIR);./test_inverse_sequential_delete
-	@cd $(BUILD_DIR);./test_alterations
-	@cd $(BUILD_DIR);./test_mmap
-	@cd $(BUILD_DIR);./test_permission_create
-	@cd $(BUILD_DIR);./test_permission_readonly
+	cd $(BUILD_DIR);./test_insert
+	cd $(BUILD_DIR);./test_delete
+	cd $(BUILD_DIR);./test_sequential_inserts
+	cd $(BUILD_DIR);./test_sequential_delete
+	cd $(BUILD_DIR);./test_inverse_sequential_inserts
+	cd $(BUILD_DIR);./test_inverse_sequential_delete
+	cd $(BUILD_DIR);./test_alterations
+	cd $(BUILD_DIR);./test_mmap
+	cd $(BUILD_DIR);./test_permission_create
+	cd $(BUILD_DIR);./test_permission_readonly
 clean:
 	@rm -rfv $(BUILD_DIR) *.o flit.*
