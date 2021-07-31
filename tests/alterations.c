@@ -142,7 +142,6 @@ int main(int argc, char const *argv[])
 	{
 		for (unsigned char ii = 0; ii < 5; ii++)
 		{
-			printf(" i. %i\nii. %d\n", i, ii);
 			switch (i)
 			{
 			case 0:
