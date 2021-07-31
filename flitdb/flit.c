@@ -623,7 +623,6 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 	void *mmapped_file = (void *)-1;
 	if ((*handler)->read_only)
 		mmapped_file = mmap(NULL, (*handler)->size, PROT_READ, MAP_PRIVATE, fileno((*handler)->file_descriptor), 0); // Attempt to allocate memory to map to file
-	printf("MMAP!\n");
 #endif
 	for (;;)
 	{
