@@ -1,9 +1,8 @@
-GCC=gcc
+CC ?= gcc
 LIB=libflitdb.so
 LIB_PATH=/usr/lib
 HEADER_PATH=/usr/include/flit.h
 OBJ_ARGS=-fPIC -Os -Wno-format-truncation
-LIB_OBJ_ARG=
 ifeq ($(shell uname -s),Darwin)
 	LIB=libflitdb.dylib
 	LIB_PATH=/usr/local/lib
@@ -16,10 +15,10 @@ default: build update clean done
 
 build:
 	@echo -n "Generating object..."
-	@$(GCC) $(OBJ_ARGS) -c $(SRC)
+	@$(CC) $(OBJ_ARGS) -c $(SRC)
 	@echo " done"
 	@echo -n "Generating shared library..."
-	@$(GCC) -fPIC -s -shared -o $(LIB) $(OBJ)
+	@$(CC) -fPIC -s -shared -o $(LIB) $(OBJ)
 	@echo " done"
 
 update:
