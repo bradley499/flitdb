@@ -21,6 +21,7 @@ build:
 	$(CC) $(ARGS) -c alterations.c
 	$(CC) $(ARGS) -c permission_create.c
 	$(CC) $(ARGS) -c permission_readonly.c
+	$(CC) $(ARGS) -c mmap.c
 	$(CC) $(ARGS) -c flit.c
 	$(CC) $(ARGS) inserts.o flit.o -o $(BUILD_DIR)/test_insert
 	$(CC) $(ARGS) sequential_inserts.o flit.o -o $(BUILD_DIR)/test_sequential_inserts
@@ -31,12 +32,11 @@ build:
 	$(CC) $(ARGS) alterations.o flit.o -o $(BUILD_DIR)/test_alterations
 	$(CC) $(ARGS) permission_create.o flit.o -o $(BUILD_DIR)/test_permission_create
 	$(CC) $(ARGS) permission_readonly.o flit.o -o $(BUILD_DIR)/test_permission_readonly
+	$(CC) $(ARGS) mmap.o flit.o -o $(BUILD_DIR)/test_mmap
 	sed "s/#define FLITDB_SIZING_MODE FLITDB_SIZING_MODE_BIG/#define FLITDB_SIZING_MODE FLITDB_SIZING_MODE_TINY/g" flit.h > flit2.h && mv flit2.h flit.h
 	rm flit.o
 	$(CC) $(ARGS) -c flit.c
-	$(CC) $(ARGS) -c mmap.c
 	$(CC) $(ARGS) -c range.c
-	$(CC) $(ARGS) mmap.o flit.o -o $(BUILD_DIR)/test_mmap
 	$(CC) $(ARGS) range.o flit.o -o $(BUILD_DIR)/test_range
 
 test:
