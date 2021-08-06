@@ -30,9 +30,7 @@ char *flitdb_retrieve_value_char(flitdb **handler);
 bool flitdb_retrieve_value_bool(flitdb **handler);
 unsigned char flitdb_retrieve_value_type(flitdb **handler);
 void flitdb_error_state(flitdb **handler, unsigned char error_id);
-#if FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_TINY
 union flitdb_read_mmap_response flitdb_read_mmap(unsigned int position, unsigned char size, void *mmapped_char);
-#endif
 
 #define FLITDB_MAX_BUFFER_SIZE 1024
 #define FLITDB_MAX_CHAR_LENGTH (0xFFFF - sizeof(short))
@@ -40,6 +38,7 @@ union flitdb_read_mmap_response flitdb_read_mmap(unsigned int position, unsigned
 #define FLITDB_SEGMENT_SIZE 3
 #define FLITDB_PARTITION_SIZE 4
 #define FLITDB_PARTITION_AND_SEGMENT (FLITDB_SEGMENT_SIZE + FLITDB_PARTITION_SIZE)
+#define FLITDB_MMAP_MAX_SIZE 0x1400000 // 20 megabytes (20971520)
 
 #define FLITDB_READ_INT 1
 #define FLITDB_READ_FLOAT 2
@@ -50,9 +49,6 @@ union flitdb_read_mmap_response flitdb_read_mmap(unsigned int position, unsigned
 #ifndef FLITDB_SIZING_MODE
 #error No sizing mode type was defined to FLITDB_SIZING_MODE
 #elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_TINY
-#if FLITDB_MMAP_ALLOWED
-#define FLITDB_MMAP_OK
-#endif
 #define FLITDB_COLUMN_POSITION_MAX 0x000F
 #define FLITDB_ROW_POSITION_MAX 0x000F
 typedef unsigned int flitdb_sizing_max;
@@ -70,6 +66,10 @@ typedef unsigned long long flitdb_size_selection_type;
 typedef unsigned long long flitdb_sizing_max;
 #else
 #error An invalid sizing mode was attributed to FLITDB_SIZING_MODE
+#endif
+
+#if FLITDB_MMAP_ALLOWED
+#define FLITDB_MMAP_OK // Allow memory mapping the database when reading
 #endif
 
 unsigned int flitdb_version_check()
@@ -622,7 +622,8 @@ unsigned char flitdb_read_at(flitdb **handler, flitdb_column_row_sizing column_p
 #ifdef FLITDB_MMAP_OK
 	void *mmapped_file = (void *)-1;
 	if ((*handler)->read_only)
-		mmapped_file = mmap(NULL, (*handler)->size, PROT_READ, MAP_PRIVATE, fileno((*handler)->file_descriptor), 0); // Attempt to allocate memory to map to file
+		if ((*handler)->size <= FLITDB_MMAP_MAX_SIZE && (*handler)->size > 0)
+			mmapped_file = mmap(NULL, (*handler)->size, PROT_READ, MAP_PRIVATE, fileno((*handler)->file_descriptor), 0); // Attempt to allocate memory to map to file
 #endif
 	for (;;)
 	{
