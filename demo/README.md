@@ -29,7 +29,7 @@ For more specific commands attributed to the Makefile, please reference the tabl
 | Command | What is does |
 |---------|--------------|
 |`make setup`|Creates the directory `build` in this folder, and copies over all the required FlitDB files from the folder [`../flitdb`](../flitdb).|
-|`make setup_lib`|Creates the directory `build` in this folder, and copies over the standard FlitDB header from [`../flitdb/flit.h`](../flitdb/flit.h).|
+|`make setup_lib`|Creates the directory `build` in this folder.|
 |`make build`|Will attempt to compile to program.|
 |`make build_lib`|Will attempt to compile to program with a linked FlitDB shared library.|
 |`make run`|Attempts to run the compiled program.|
