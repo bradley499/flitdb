@@ -313,7 +313,7 @@ union flitdb_read_mmap_response
 union flitdb_read_mmap_response flitdb_read_mmap(unsigned int position, unsigned char size, void *mmapped_char)
 {
 	union flitdb_read_mmap_response value;
-	memset(value.bytes, 0, 4);
+	memset(value.bytes, 0, sizeof(value.bytes));
 	unsigned char byte_position = 0;
 	for (unsigned int i = position; i < (size + position); i++)
 		value.bytes[byte_position++] = (char)(((char *)mmapped_char)[i]);
@@ -369,9 +369,10 @@ void flitdb_destroy(flitdb **handler)
 			fclose((*handler)->file_descriptor);				 // Closes conenction to the database file of operation
 		}
 	}
-	if ((*handler)->read_only == FLITDB_READ_AND_WRITE && (*handler)->buffer != NULL) // If buffer exists in a read and write state
+
+	if ((*handler)->read_only != FLITDB_READONLY_MMAPPED && (*handler)->buffer != NULL) // If buffer exists in a read and write state
 		free((*handler)->buffer);													  // Free up buffer
-	else if ((*handler)->buffer != (void *)-1)										  // If buffer
+	else if ((*handler)->buffer != MAP_FAILED)										  // If buffer
 		munmap((*handler)->buffer, (*handler)->size);								  // Free up mmapped file memory
 }
 
@@ -411,7 +412,6 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
         {
 			if ((flags & FLITDB_CREATE) == 0)
 			{
-				printf("lol\n");
 				flitdb_error_state(handler, 4);
 				return FLITDB_NOT_FOUND;
 			}
@@ -449,16 +449,22 @@ int flitdb_connection_setup(flitdb **handler, const char *filename, int flags)
 		flitdb_error_state(handler, 7);
 		return FLITDB_RANGE;
 	}
+	#ifdef FLITDB_MMAP_OK
 	if ((*handler)->read_only == FLITDB_READONLY)
 	{
 		if ((*handler)->size <= FLITDB_MMAP_MAX_SIZE && (*handler)->size > 0)
+		{
 			(*handler)->buffer = mmap(NULL, (*handler)->size, PROT_READ, MAP_PRIVATE, fileno((*handler)->file_descriptor), 0); // Attempt to allocate memory to map to file
+			if ((*handler)->buffer != MAP_FAILED)
+				(*handler)->read_only = FLITDB_READONLY_MMAPPED;
+			else
+				(*handler)->buffer = malloc((sizeof(char) * FLITDB_MAX_BUFFER_SIZE));
+		}
 		else
-			return FLITDB_SUCCESS;
-		if ((*handler)->buffer != (void *)-1)
-			(*handler)->read_only = FLITDB_READONLY_MMAPPED;
+			(*handler)->buffer = malloc((sizeof(char) * FLITDB_MAX_BUFFER_SIZE));
 	}
 	else
+	#endif
 		(*handler)->buffer = malloc((sizeof(char) * FLITDB_MAX_BUFFER_SIZE));
 	if ((*handler)->buffer == NULL)
 	{
@@ -1552,5 +1558,7 @@ unsigned char flitdb_insert_at(flitdb **handler, flitdb_column_row_sizing column
 #undef FLITDB_COLUMN_POSITION_MAX
 #undef FLITDB_ROW_POSITION_MAX
 #undef FLITDB_ALLOW_UNSAFE
+#undef FLITDB_MMAP_ALLOWED
+#undef FLITDB_MMAP_OK
 
 #endif
