@@ -2,7 +2,7 @@ CC ?= gcc
 LIB=libflitdb.so
 LIB_PATH=/usr/lib
 HEADER_PATH=/usr/include/flit.h
-OBJ_ARGS=-fPIC -Os -Wno-format-truncation
+OBJ_ARGS=-fPIC -Os -Werror -Wno-format-truncation -pedantic
 ifeq ($(shell uname -s),Darwin)
 	LIB=libflitdb.dylib
 	LIB_PATH=/usr/local/lib
