@@ -2,22 +2,26 @@
 #define flit_h
 #include <stdbool.h>
 
-#define FLITDB_SUCCESS       0  // Successful operation
-#define FLITDB_ERROR         1  // Unsuccessful operation
-#define FLITDB_PERM          2  // Permission denied
-#define FLITDB_BUSY          3  // The database file is locked
-#define FLITDB_NOT_FOUND     4  // The database file is not found
-#define FLITDB_CORRUPT       5  // The database file is malformed
-#define FLITDB_RANGE         6  // The requested range is outside the range of the database
-#define FLITDB_CREATE        7  // Create a database if not existent
-#define FLITDB_READONLY      8  // Only allow the reading of the database
-#define FLITDB_DONE          9  // The operation was completed successfully
-#define FLITDB_NULL          10 // The operation resulted in a null lookup
-#define FLITDB_INTEGER       11 // The value type of int
-#define FLITDB_FLOAT         12 // The value type of float
-#define FLITDB_CHAR          13 // The value type of char
-#define FLITDB_BOOL          14 // The value type of bool
-#define FLITDB_UNSAFE        16 // Discard all safety protocols to allow for larger database
+enum flitdb_response_t
+{
+	FLITDB_SUCCESS   = 0,  // Successful operation
+	FLITDB_ERROR     = 1,  // Unsuccessful operation
+	FLITDB_PERM      = 2,  // Permission denied
+	FLITDB_BUSY      = 3,  // The database file is locked
+	FLITDB_NOT_FOUND = 4,  // The database file is not found
+	FLITDB_CORRUPT   = 5,  // The database file is malformed
+	FLITDB_RANGE     = 6,  // The requested range is outside the range of the database
+	FLITDB_CREATE    = 7,  // Create a database if not existent
+	FLITDB_READONLY  = 8,  // Only allow the reading of the database
+	FLITDB_DONE      = 9,  // The operation was completed successfully
+	FLITDB_NULL      = 10, // The operation resulted in a null lookup
+	FLITDB_INTEGER   = 11, // The value type of int
+	FLITDB_FLOAT     = 12, // The value type of float
+	FLITDB_CHAR      = 13, // The value type of char
+	FLITDB_BOOL      = 14, // The value type of bool
+	FLITDB_UNSAFE    = 16, // Discard all safety protocols to allow for larger database
+};
+
 #define FLITDB_VERSION  0x117ee // The current FlitDB version magic number
 
 // Database sizing options
@@ -26,10 +30,21 @@
 #define FLITDB_SIZING_MODE_BIG   3 // Handle databases up to 281.47 terabytes in size
 
 // Database memory mapping
-#define FLITDB_MMAP_ALLOWED 1 // Allows the database to memory map files - if possible (1 - allowed, 0 - dissallowed)
+#define FLITDB_MMAP_ALLOWED 1 // Allows the database to memory map files - if possible (1 - allowed, 0 - disallowed)
 
 // Database sizing selection
 #define FLITDB_SIZING_MODE FLITDB_SIZING_MODE_BIG // The sizing mode for this compilation
+
+#if FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_BIG
+#define FLITDB_COLUMN_POSITION_MAX 0xFFFF
+#define FLITDB_ROW_POSITION_MAX 0xFFFF
+#elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_SMALL
+#define FLITDB_COLUMN_POSITION_MAX 0x00FF
+#define FLITDB_ROW_POSITION_MAX 0x00FF
+#elif FLITDB_SIZING_MODE == FLITDB_SIZING_MODE_TINY
+#define FLITDB_COLUMN_POSITION_MAX 0x000F
+#define FLITDB_ROW_POSITION_MAX 0x000F
+#endif
 
 #ifdef __cplusplus
 #define flitdb_extern extern "C"
